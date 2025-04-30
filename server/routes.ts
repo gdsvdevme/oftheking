@@ -2,7 +2,12 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { syncDataWithSupabase, supabaseAdmin } from "./supabase-admin";
+import { 
+  syncDataWithSupabase, 
+  supabaseAdmin, 
+  getSupabaseClients, 
+  getSupabaseAppointments 
+} from "./supabase-admin";
 import { 
   insertClientSchema, 
   insertServiceSchema, 
@@ -487,6 +492,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       res.status(500).json({ message: "Erro ao acessar usuários do Supabase", error: error?.message });
+    }
+  });
+  
+  // Rota para buscar clientes do Supabase
+  app.get("/api/supabase/clients", async (req, res) => {
+    try {
+      const result = await getSupabaseClients();
+      
+      if (!result.success) {
+        return res.status(500).json({ 
+          message: "Erro ao buscar clientes do Supabase", 
+          error: result.error 
+        });
+      }
+      
+      res.json({
+        clients: result.clients,
+        count: result.count
+      });
+    } catch (error: any) {
+      console.error('Erro ao buscar clientes do Supabase:', error);
+      res.status(500).json({ 
+        message: "Erro ao acessar clientes do Supabase", 
+        error: error?.message || 'Erro desconhecido'
+      });
+    }
+  });
+  
+  // Rota para buscar agendamentos do Supabase
+  app.get("/api/supabase/appointments", async (req, res) => {
+    try {
+      const result = await getSupabaseAppointments();
+      
+      if (!result.success) {
+        return res.status(500).json({ 
+          message: "Erro ao buscar agendamentos do Supabase", 
+          error: result.error 
+        });
+      }
+      
+      res.json({
+        appointments: result.appointments,
+        count: result.count
+      });
+    } catch (error: any) {
+      console.error('Erro ao buscar agendamentos do Supabase:', error);
+      res.status(500).json({ 
+        message: "Erro ao acessar agendamentos do Supabase", 
+        error: error?.message || 'Erro desconhecido'
+      });
     }
   });
   

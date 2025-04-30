@@ -87,6 +87,46 @@ export default function SupabasePage() {
     },
   });
   
+  // Buscar clientes do Supabase
+  const clientsQuery = useQuery({
+    queryKey: ['/api/supabase/clients'],
+    queryFn: async () => {
+      const response = await fetch('/api/supabase/clients');
+      if (!response.ok) {
+        const data = await response.json();
+        const errorMsg = data.error || 'Falha ao buscar clientes do Supabase';
+        
+        // Se for erro de permissão específico
+        if (errorMsg.includes('not allowed') || errorMsg.includes('not_found') || errorMsg.includes('not_admin')) {
+          throw new Error('Erro de permissão ou tabela não encontrada. Você precisa criar a tabela "clientes" no Supabase.');
+        }
+        
+        throw new Error(errorMsg);
+      }
+      return response.json();
+    },
+  });
+  
+  // Buscar agendamentos do Supabase
+  const appointmentsQuery = useQuery({
+    queryKey: ['/api/supabase/appointments'],
+    queryFn: async () => {
+      const response = await fetch('/api/supabase/appointments');
+      if (!response.ok) {
+        const data = await response.json();
+        const errorMsg = data.error || 'Falha ao buscar agendamentos do Supabase';
+        
+        // Se for erro de permissão específico
+        if (errorMsg.includes('not allowed') || errorMsg.includes('not_found') || errorMsg.includes('not_admin')) {
+          throw new Error('Erro de permissão ou tabela não encontrada. Você precisa criar a tabela "agendamentos" no Supabase.');
+        }
+        
+        throw new Error(errorMsg);
+      }
+      return response.json();
+    },
+  });
+  
   const handleSync = () => {
     syncQuery.refetch();
   };
@@ -303,6 +343,8 @@ export default function SupabasePage() {
         <TabsList className="mb-6">
           <TabsTrigger value="profiles">Perfis</TabsTrigger>
           <TabsTrigger value="users">Usuários</TabsTrigger>
+          <TabsTrigger value="clients">Clientes</TabsTrigger>
+          <TabsTrigger value="appointments">Agendamentos</TabsTrigger>
         </TabsList>
         
         <TabsContent value="profiles">
