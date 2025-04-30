@@ -15,7 +15,20 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 // Cria cliente administrativo do Supabase para acesso total aos dados
-export const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
+// Configurando explicitamente para ignorar RLS (Row Level Security)
+export const supabaseAdmin = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  },
+  // Criando cabeçalhos personalizados para garantir que estamos usando a chave de serviço
+  global: {
+    headers: {
+      // Adicionando o header que identifica esta chave como uma chave de serviço (service role)
+      'X-Client-Info': 'supabase-js-admin',
+    },
+  },
+});
 
 // Função para sincronizar dados entre PostgreSQL local e Supabase
 // Função para sincronizar dados entre PostgreSQL local e Supabase
@@ -75,8 +88,8 @@ export async function syncDataWithSupabase() {
     
     // Sincronizar clientes
     try {
-      // Esta é uma tabela personalizada que deve ser criada no Supabase
-      const { data: clients, error: clientsError } = await supabaseAdmin.from('clientes').select('*');
+      // Na tabela do Supabase, o nome pode ser 'clients' (em inglês)
+      const { data: clients, error: clientsError } = await supabaseAdmin.from('clients').select('*');
       
       if (clientsError) {
         results.clients.message = clientsError.message;
@@ -97,8 +110,8 @@ export async function syncDataWithSupabase() {
     
     // Sincronizar agendamentos
     try {
-      // Esta é uma tabela personalizada que deve ser criada no Supabase
-      const { data: appointments, error: appointmentsError } = await supabaseAdmin.from('agendamentos').select('*');
+      // Na tabela do Supabase, o nome pode ser 'appointments' (em inglês)
+      const { data: appointments, error: appointmentsError } = await supabaseAdmin.from('appointments').select('*');
       
       if (appointmentsError) {
         results.appointments.message = appointmentsError.message;
@@ -139,7 +152,7 @@ export async function syncDataWithSupabase() {
 // Função para buscar clientes do Supabase
 export async function getSupabaseClients() {
   try {
-    const { data, error } = await supabaseAdmin.from('clientes').select('*');
+    const { data, error } = await supabaseAdmin.from('clients').select('*');
     
     if (error) {
       console.error('Erro ao buscar clientes do Supabase:', error);
@@ -163,7 +176,7 @@ export async function getSupabaseClients() {
 // Função para buscar agendamentos do Supabase
 export async function getSupabaseAppointments() {
   try {
-    const { data, error } = await supabaseAdmin.from('agendamentos').select('*');
+    const { data, error } = await supabaseAdmin.from('appointments').select('*');
     
     if (error) {
       console.error('Erro ao buscar agendamentos do Supabase:', error);

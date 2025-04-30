@@ -1,0 +1,161 @@
+1. appointment_services
+
+    id: uuid DEFAULT gen_random_uuid() NOT NULL
+
+    appointment_id: uuid NOT NULL
+
+    service_id: uuid NOT NULL
+
+    price: numeric NOT NULL
+
+    final_price: numeric DEFAULT 0
+
+2. appointments
+
+    id: uuid DEFAULT gen_random_uuid() NOT NULL
+
+    client_id: uuid NOT NULL
+
+    start_time: timestamp with time zone NOT NULL
+
+    end_time: timestamp with time zone NOT NULL
+
+    status: text DEFAULT 'scheduled' NOT NULL
+
+    notes: text
+
+    created_at: timestamp with time zone DEFAULT now()
+
+    created_by: uuid
+
+    final_price: numeric DEFAULT 0
+
+    recurrence: text
+
+    payment_date: timestamp with time zone
+
+    payment_status: text DEFAULT 'paid' NOT NULL
+
+3. blocked_schedules
+
+    id: uuid DEFAULT extensions.uuid_generate_v4() NOT NULL
+
+    start_time: timestamp with time zone NOT NULL
+
+    end_time: timestamp with time zone NOT NULL
+
+    reason: text
+
+    created_at: timestamp with time zone DEFAULT now()
+
+4. clients
+
+    id: uuid DEFAULT gen_random_uuid() NOT NULL
+
+    name: text NOT NULL
+
+    phone: text
+
+    created_at: timestamp with time zone DEFAULT now()
+
+    created_by: uuid
+
+5. financial_transactions
+
+    id: uuid DEFAULT gen_random_uuid() NOT NULL
+
+    transaction_date: timestamp with time zone DEFAULT now() NOT NULL
+
+    description: text NOT NULL
+
+    amount: numeric NOT NULL
+
+    type: text NOT NULL
+
+    category: text
+
+    related_sale_id: uuid
+
+    related_appointment_id: uuid
+
+    payment_method: text
+
+    notes: text
+
+    created_at: timestamp with time zone DEFAULT now()
+
+    created_by: uuid
+
+6. inventory
+
+    id: uuid DEFAULT gen_random_uuid() NOT NULL
+
+    name: text NOT NULL
+
+    quantity: integer DEFAULT 0 NOT NULL
+
+    cost_price: numeric DEFAULT 0 NOT NULL
+
+    selling_price: numeric DEFAULT 0 NOT NULL
+
+    created_at: timestamp with time zone DEFAULT now()
+
+    created_by: uuid
+
+    category: text DEFAULT 'Geral'
+
+7. profiles
+
+    id: uuid NOT NULL
+
+    email: text NOT NULL
+
+    name: text
+
+    created_at: timestamp with time zone DEFAULT now()
+
+8. sale_items
+
+    id: uuid DEFAULT gen_random_uuid() NOT NULL
+
+    sale_id: uuid NOT NULL
+
+    inventory_id: uuid NOT NULL
+
+    quantity: integer DEFAULT 1 NOT NULL
+
+    unit_price: numeric DEFAULT 0 NOT NULL
+
+    total_price: numeric DEFAULT 0 NOT NULL
+
+9. sales
+
+    id: uuid DEFAULT gen_random_uuid() NOT NULL
+
+    sale_date: timestamp with time zone DEFAULT now() NOT NULL
+
+    total_amount: numeric DEFAULT 0 NOT NULL
+
+    payment_method: text
+
+    notes: text
+
+    created_at: timestamp with time zone DEFAULT now()
+
+    created_by: uuid
+
+    client_id: uuid
+
+10. services
+
+    id: uuid DEFAULT gen_random_uuid() NOT NULL
+
+    name: text NOT NULL
+
+    price: numeric DEFAULT 0 NOT NULL
+
+    duration: integer DEFAULT 60 NOT NULL
+
+    created_at: timestamp with time zone DEFAULT now()
+
+    created_by: uuid
