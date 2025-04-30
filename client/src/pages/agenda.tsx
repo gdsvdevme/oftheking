@@ -150,7 +150,6 @@ export default function Agenda() {
         <NewAppointmentModal 
           open={showNewAppointmentModal} 
           onClose={() => setShowNewAppointmentModal(false)} 
-          selectedDate={selectedDate}
         />
       )}
 
