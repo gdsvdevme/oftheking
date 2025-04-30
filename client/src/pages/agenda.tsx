@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { 
   isToday, 
@@ -127,6 +127,13 @@ export default function Agenda() {
   const total = filteredAppointments.length;
   const totalPages = Math.ceil(total / perPage);
   
+  // Garantir que a página atual não exceda o total de páginas
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+  
   // Log para depuração
   console.log("Total appointments:", total);
   console.log("Total pages:", totalPages);
@@ -149,7 +156,16 @@ export default function Agenda() {
 
   const handlePageChange = (page: number) => {
     console.log("Changing to page:", page, "Total pages:", totalPages);
-    setCurrentPage(page);
+    // Atualizar a página atual apenas se for diferente da atual e válida
+    if (page !== currentPage && page > 0 && page <= totalPages) {
+      setCurrentPage(page);
+      
+      // Rolagem suave para o topo da lista
+      document.querySelector('.agenda-content')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
   };
 
   const handleAppointmentClick = (appointmentId: string) => {
@@ -207,42 +223,48 @@ export default function Agenda() {
         </div>
 
         <TabsContent value="day" className="mt-4">
-          <AppointmentList
-            appointments={appointments}
-            onAppointmentClick={handleAppointmentClick}
-            onFiltersChange={handleFiltersChange}
-          />
-          <Pagination
-            currentPage={pagination.page}
-            totalPages={pagination.totalPages}
-            onPageChange={handlePageChange}
-          />
+          <div className="agenda-content">
+            <AppointmentList
+              appointments={appointments}
+              onAppointmentClick={handleAppointmentClick}
+              onFiltersChange={handleFiltersChange}
+            />
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={pagination.totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
         </TabsContent>
         
         <TabsContent value="week" className="mt-4">
-          <AppointmentList
-            appointments={appointments}
-            onAppointmentClick={handleAppointmentClick}
-            onFiltersChange={handleFiltersChange}
-          />
-          <Pagination
-            currentPage={pagination.page}
-            totalPages={pagination.totalPages}
-            onPageChange={handlePageChange}
-          />
+          <div className="agenda-content">
+            <AppointmentList
+              appointments={appointments}
+              onAppointmentClick={handleAppointmentClick}
+              onFiltersChange={handleFiltersChange}
+            />
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={pagination.totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
         </TabsContent>
         
         <TabsContent value="month" className="mt-4">
-          <AppointmentList
-            appointments={appointments}
-            onAppointmentClick={handleAppointmentClick}
-            onFiltersChange={handleFiltersChange}
-          />
-          <Pagination
-            currentPage={pagination.page}
-            totalPages={pagination.totalPages}
-            onPageChange={handlePageChange}
-          />
+          <div className="agenda-content">
+            <AppointmentList
+              appointments={appointments}
+              onAppointmentClick={handleAppointmentClick}
+              onFiltersChange={handleFiltersChange}
+            />
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={pagination.totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
         </TabsContent>
       </Tabs>
 

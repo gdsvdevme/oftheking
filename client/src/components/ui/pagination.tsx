@@ -50,7 +50,11 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
       <Button
         variant="outline"
         size="icon"
-        onClick={() => onPageChange(currentPage - 1)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onPageChange(currentPage - 1);
+        }}
         disabled={currentPage <= 1}
       >
         <ChevronLeft className="h-4 w-4" />
@@ -71,7 +75,11 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
           <Button
             key={page}
             variant={currentPage === page ? "default" : "outline"}
-            onClick={() => onPageChange(page)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onPageChange(page);
+            }}
             className="h-9 w-9"
           >
             {page}
@@ -82,7 +90,11 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
       <Button
         variant="outline"
         size="icon"
-        onClick={() => onPageChange(currentPage + 1)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onPageChange(currentPage + 1);
+        }}
         disabled={currentPage >= totalPages}
       >
         <ChevronRight className="h-4 w-4" />
