@@ -73,7 +73,7 @@ export default function Agenda() {
   };
   
   // Filtrar os agendamentos com base nos filtros selecionados
-  // Aplicar filtros baseados na aba ativa
+  // Filtrar os agendamentos com base nos filtros selecionados
   const filteredAppointments = allAppointments.filter(appointment => {
     const appointmentDate = new Date(appointment.start_time);
     
@@ -86,47 +86,18 @@ export default function Agenda() {
       clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       clientPhone.includes(searchQuery);
     
-    // Aplicar filtro de período baseado na aba ativa
+    // Aplicar filtro de período
     let matchesPeriod = true;
-    if (activeTab === "day") {
-      // Na aba dia, se o filtro for "all", mostramos apenas o dia atual
-      if (periodFilter === "all") {
-        matchesPeriod = isToday(appointmentDate);
-      } else if (periodFilter === "today") {
-        matchesPeriod = isToday(appointmentDate);
-      } else if (periodFilter === "tomorrow") {
-        matchesPeriod = isTomorrow(appointmentDate);
-      } else if (periodFilter === "thisWeek") {
-        matchesPeriod = isThisWeek(appointmentDate, { weekStartsOn: 0 });
-      } else if (periodFilter === "thisMonth") {
-        matchesPeriod = isThisMonth(appointmentDate);
-      }
-    } else if (activeTab === "week") {
-      // Na aba semana, se o filtro for "all", mostramos apenas a semana atual
-      if (periodFilter === "all") {
-        matchesPeriod = isThisWeek(appointmentDate, { weekStartsOn: 0 });
-      } else if (periodFilter === "today") {
-        matchesPeriod = isToday(appointmentDate);
-      } else if (periodFilter === "tomorrow") {
-        matchesPeriod = isTomorrow(appointmentDate);
-      } else if (periodFilter === "thisWeek") {
-        matchesPeriod = isThisWeek(appointmentDate, { weekStartsOn: 0 });
-      } else if (periodFilter === "thisMonth") {
-        matchesPeriod = isThisMonth(appointmentDate);
-      }
-    } else if (activeTab === "month") {
-      // Na aba mês, se o filtro for "all", mostramos apenas o mês atual
-      if (periodFilter === "all") {
-        matchesPeriod = isThisMonth(appointmentDate);
-      } else if (periodFilter === "today") {
-        matchesPeriod = isToday(appointmentDate);
-      } else if (periodFilter === "tomorrow") {
-        matchesPeriod = isTomorrow(appointmentDate);
-      } else if (periodFilter === "thisWeek") {
-        matchesPeriod = isThisWeek(appointmentDate, { weekStartsOn: 0 });
-      } else if (periodFilter === "thisMonth") {
-        matchesPeriod = isThisMonth(appointmentDate);
-      }
+    
+    // Usar o filtro de período escolhido pelo usuário
+    if (periodFilter === "today") {
+      matchesPeriod = isToday(appointmentDate);
+    } else if (periodFilter === "tomorrow") {
+      matchesPeriod = isTomorrow(appointmentDate);
+    } else if (periodFilter === "thisWeek") {
+      matchesPeriod = isThisWeek(appointmentDate, { weekStartsOn: 0 });
+    } else if (periodFilter === "thisMonth") {
+      matchesPeriod = isThisMonth(appointmentDate);
     }
     
     // Aplicar filtro de status
