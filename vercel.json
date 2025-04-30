@@ -7,13 +7,13 @@
     "silent": true
   },
   "functions": {
-    "api/*.js": {
+    "api/server.js": {
       "memory": 1024,
-      "maxDuration": 10
+      "maxDuration": 30
     }
   },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/server.js" },
+    { "source": "/api/(.*)", "destination": "/api/server" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [

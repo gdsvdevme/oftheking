@@ -124,6 +124,83 @@ async function initializeApp() {
     }
   });
   
+  // Endpoint específico para atualização de status de pagamento
+  app.patch('/api/appointments/:id/payment-status', async (req, res) => {
+    try {
+      const id = req.params.id;
+      const { paymentStatus, paymentMethod, status } = req.body;
+      
+      const updateData = {
+        payment_status: paymentStatus,
+        payment_method: paymentMethod,
+        payment_date: new Date().toISOString()
+      };
+      
+      // Se status também foi fornecido, adicionar ao updateData
+      if (status) {
+        updateData.status = status;
+      }
+      
+      const appointment = await storage.updateAppointment(id, updateData);
+      if (!appointment) {
+        return res.status(404).json({ error: 'Agendamento não encontrado' });
+      }
+      
+      res.json(appointment);
+    } catch (error) {
+      console.error('Erro ao atualizar status de pagamento:', error);
+      res.status(500).json({ error: 'Erro ao atualizar status de pagamento' });
+    }
+  });
+  
+  // Endpoint para processamento de pagamentos em lote
+  app.post('/api/appointments/bulk-payment', async (req, res) => {
+    try {
+      const { ids, paymentStatus, paymentMethod, status } = req.body;
+      
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: 'Lista de IDs inválida' });
+      }
+      
+      const updateData = {
+        payment_status: paymentStatus,
+        payment_method: paymentMethod,
+        payment_date: new Date().toISOString()
+      };
+      
+      if (status) {
+        updateData.status = status;
+      }
+      
+      // Processar cada atualização individualmente
+      const results = [];
+      const errors = [];
+      
+      for (const id of ids) {
+        try {
+          const appointment = await storage.updateAppointment(id, updateData);
+          if (appointment) {
+            results.push(appointment);
+          } else {
+            errors.push({ id, error: 'Agendamento não encontrado' });
+          }
+        } catch (err) {
+          errors.push({ id, error: err.message });
+        }
+      }
+      
+      res.json({
+        success: results.length,
+        failed: errors.length,
+        results,
+        errors: errors.length > 0 ? errors : undefined
+      });
+    } catch (error) {
+      console.error('Erro ao processar pagamentos em lote:', error);
+      res.status(500).json({ error: 'Erro ao processar pagamentos em lote' });
+    }
+  });
+  
   // Bloqueios de horário
   app.get('/api/blocked-schedules', async (req, res) => {
     try {
