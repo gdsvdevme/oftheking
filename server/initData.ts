@@ -10,52 +10,37 @@ import {
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
-// IDs para dados reais
-// Utilizando dados reais baseados em clientes_com_agendamentos_e_pagamentos.json
+// Gerar UUIDs consistentes para usar no database
 const clientIds = {
-  noTrabalhar: "1a4028cb-b4c0-4d10-9e2c-cf2b87fd790d",
-  anaMaria: "549190a8-616a-41d0-af32-5e3ed4b587bb",
-  camila: "1c017e5b-c434-4885-8203-44d85252c23f",
-  bruna: "516a91c5-1e46-47d8-8fa1-88ee56a04e75",
-  nadnny: "19e67991-3c2f-4baa-b429-3498beba3ec3",
-  natanne: "e3e28710-2e54-49a9-bb8d-7cab5ca8f7cb", 
-  diene: "1d55b9f6-1734-4301-975f-6a3c99cbc9ac",
-  claudia: "29995f5f-d9c2-469c-9f7d-f8ec2484f71f",
+  client1: randomUUID(),
+  client2: randomUUID(),
+  client3: randomUUID(),
+  client4: randomUUID(),
 };
 
-// Serviços reais para o salão
 const serviceIds = {
-  corte: randomUUID(),
-  escova: randomUUID(),
-  hidratacao: randomUUID(),
-  manicure: randomUUID(),
-  pedicure: randomUUID(),
-  coloracao: randomUUID(),
-  sobrancelhas: randomUUID(),
-  penteado: randomUUID(),
-  maquiagem: randomUUID(),
+  service1: randomUUID(),
+  service2: randomUUID(),
+  service3: randomUUID(),
+  service4: randomUUID(),
+  service5: randomUUID(),
+  service6: randomUUID(),
+  service7: randomUUID(),
 };
 
-// Produtos reais para estoque
 const inventoryIds = {
-  shampoo: randomUUID(),
-  condicionador: randomUUID(),
-  mascara: randomUUID(),
-  esmalte: randomUUID(),
-  tintura: randomUUID(),
-  fixador: randomUUID(),
+  inventory1: randomUUID(),
+  inventory2: randomUUID(),
+  inventory3: randomUUID(),
+  inventory4: randomUUID(),
 };
 
-// IDs para agendamentos
 const appointmentIds = {
-  appointment1: "6569776a-4c3e-4ae3-a797-de75ac70eaee",
-  appointment2: "d5cf52da-359e-46e8-9bd8-df251d96066e",
-  appointment3: "e206c691-035a-4a37-8b6d-285bcd7e194f",
-  appointment4: "dc75794d-4d3e-4e0e-b498-a1c38bc6b52b",
-  appointment5: "7cdd214d-76b7-4858-9498-e8e8bb8fac2a",
+  appointment1: randomUUID(),
+  appointment2: randomUUID(),
+  appointment3: randomUUID(),
 };
 
-// IDs para serviços de agendamento
 const appointmentServiceIds = {
   as1: randomUUID(),
   as2: randomUUID(),
@@ -64,16 +49,14 @@ const appointmentServiceIds = {
   as5: randomUUID(),
 };
 
-// IDs para horários bloqueados
 const blockedScheduleIds = {
   blocked1: randomUUID(),
 };
 
-// IDs para transações financeiras
 const financialTransactionIds = {
-  ft1: "a0f61bc3-b21b-4f42-a445-f2e88d944021",
-  ft2: "1b936924-b20a-4da8-90e0-77df3edbd52d",
-  ft3: "a385075d-e899-401a-8caa-f68b786db126",
+  ft1: randomUUID(),
+  ft2: randomUUID(),
+  ft3: randomUUID(),
 };
 
 export async function initializeDatabase() {
