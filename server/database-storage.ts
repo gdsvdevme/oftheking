@@ -215,7 +215,7 @@ export class DatabaseStorage implements IStorage {
     let query = supabase
       .from('appointments')
       .select('*, clients(*)')  // Incluindo dados do cliente na consulta
-      .order('start_time')
+      .order('start_time', { ascending: false }) // Ordenação decrescente: mais recentes primeiro
       .range(offset, offset + perPage - 1);  // Aplicamos paginação
     
     if (startDate) {

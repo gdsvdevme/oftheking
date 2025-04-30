@@ -40,6 +40,8 @@ interface Appointment {
     name: string;
     phone?: string;
   };
+  client_name?: string; // Propriedade adicional para compatibilidade
+  client_phone?: string; // Propriedade adicional para compatibilidade
   start_time: string;
   end_time: string;
   status: string;
@@ -48,6 +50,11 @@ interface Appointment {
   services?: {
     name: string;
     price: number;
+    services?: {
+      name: string;
+      price: number;
+      duration?: number;
+    };
   }[];
   final_price: number;
 }
@@ -120,8 +127,8 @@ export default function AppointmentList({
     const appointmentDate = parseDateSafely(appointment.start_time);
     
     // Verificamos se client existe e tem propriedade name
-    const clientName = appointment.client?.name || "";
-    const clientPhone = appointment.client?.phone || "";
+    const clientName = appointment.client?.name || appointment.client_name || "";
+    const clientPhone = appointment.client?.phone || appointment.client_phone || "";
     
     const matchesSearch = 
       !searchQuery || 
@@ -135,8 +142,10 @@ export default function AppointmentList({
     } else if (periodFilter === "tomorrow") {
       matchesPeriod = isTomorrow(appointmentDate);
     } else if (periodFilter === "thisWeek") {
-      matchesPeriod = isThisWeek(appointmentDate);
+      // Verificar se está na mesma semana
+      matchesPeriod = isThisWeek(appointmentDate, { weekStartsOn: 0 });
     } else if (periodFilter === "thisMonth") {
+      // Verificar se está no mesmo mês
       matchesPeriod = isThisMonth(appointmentDate);
     }
     
@@ -144,8 +153,15 @@ export default function AppointmentList({
     let matchesStatus = true;
     if (statusFilter !== "all") {
       if (statusFilter === "pending") {
-        matchesStatus = appointment.payment_status === "pending";
+        // Verifica se o pagamento está pendente (não pago)
+        matchesStatus = appointment.payment_status === "pending" || 
+                        appointment.payment_status !== "paid";
+      } else if (statusFilter === "scheduled") {
+        // Verifica se está agendado (não cancelado e não concluído)
+        matchesStatus = appointment.status !== "cancelled" && 
+                        appointment.status !== "completed";
       } else {
+        // Verifica os outros status diretamente
         matchesStatus = appointment.status === statusFilter;
       }
     }
@@ -155,7 +171,8 @@ export default function AppointmentList({
     // Ordenar por data (do mais recente para o mais antigo)
     const dateA = parseDateSafely(a.start_time);
     const dateB = parseDateSafely(b.start_time);
-    return dateA.getTime() - dateB.getTime();
+    // Inverter a ordem para mostrar mais recentes primeiro
+    return dateB.getTime() - dateA.getTime();
   });
 
   // Renderizar o status do agendamento com cores correspondentes
