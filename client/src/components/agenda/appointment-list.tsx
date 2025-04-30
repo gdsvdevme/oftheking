@@ -148,22 +148,36 @@ export default function AppointmentList({
   // Renderizar o status do agendamento com cores correspondentes
   const renderStatus = (status: string, paymentStatus: string | null) => {
     // Status "cancelado"
-    if (status === "canceled") {
+    if (status === "cancelado") {
       return <Badge variant="destructive">Cancelado</Badge>;
     }
     
     // Status "finalizado" com pagamento realizado
-    else if (status === "completed" || paymentStatus === "paid") {
+    else if (status === "finalizado" || paymentStatus === "pago") {
       return <Badge className="bg-green-500">Finalizado</Badge>;
     }
     
     // Status "pagamento pendente"
-    else if (status === "payment_pending" || paymentStatus === "pending") {
+    else if (status === "pagamento pendente" || paymentStatus === "pendente") {
       return <Badge className="bg-amber-500">Pagamento Pendente</Badge>;
     }
     
     // Status "agendado" (padrão)
-    else if (status === "scheduled" || !paymentStatus) {
+    else if (status === "agendado" || !paymentStatus) {
+      return <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">Agendado</Badge>;
+    }
+    
+    // Para compatibilidade com valores antigos em inglês
+    else if (status === "canceled") {
+      return <Badge variant="destructive">Cancelado</Badge>;
+    }
+    else if (status === "completed" || paymentStatus === "paid") {
+      return <Badge className="bg-green-500">Finalizado</Badge>;
+    }
+    else if (status === "payment_pending" || paymentStatus === "pending") {
+      return <Badge className="bg-amber-500">Pagamento Pendente</Badge>;
+    }
+    else if (status === "scheduled") {
       return <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">Agendado</Badge>;
     }
     
@@ -226,10 +240,10 @@ export default function AppointmentList({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="scheduled">Agendado</SelectItem>
-              <SelectItem value="completed">Finalizado</SelectItem>
-              <SelectItem value="canceled">Cancelado</SelectItem>
-              <SelectItem value="payment_pending">Pagamento pendente</SelectItem>
+              <SelectItem value="agendado">Agendado</SelectItem>
+              <SelectItem value="finalizado">Finalizado</SelectItem>
+              <SelectItem value="cancelado">Cancelado</SelectItem>
+              <SelectItem value="pagamento pendente">Pagamento pendente</SelectItem>
             </SelectContent>
           </Select>
         </div>
