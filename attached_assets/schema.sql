@@ -1,0 +1,872 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 15.8
+-- Dumped by pg_dump version 15.12 (Ubuntu 15.12-1.pgdg22.04+1)
+
+-- Started on 2025-04-28 21:24:56 -03
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- TOC entry 15 (class 2615 OID 2200)
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+CREATE SCHEMA "public";
+
+
+--
+-- TOC entry 3991 (class 0 OID 0)
+-- Dependencies: 15
+-- Name: SCHEMA "public"; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON SCHEMA "public" IS 'standard public schema';
+
+
+--
+-- TOC entry 558 (class 1255 OID 29521)
+-- Name: decrement(integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION "public"."decrement"("x" integer) RETURNS integer
+    LANGUAGE "plpgsql" STABLE
+    AS $$
+BEGIN
+  RETURN quantity - x;
+END;
+$$;
+
+
+--
+-- TOC entry 559 (class 1255 OID 92125)
+-- Name: handle_completed_appointment(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION "public"."handle_completed_appointment"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  -- Automatically set status to completed when payment_status is changed to paid
+  IF NEW.payment_status = 'paid' AND OLD.payment_status != 'paid' THEN
+    NEW.status := 'completed';
+  END IF;
+
+  -- Create financial transaction if status becomes completed AND payment_status is paid
+  IF NEW.payment_status = 'paid' AND 
+     (OLD.payment_status IS NULL OR OLD.payment_status <> 'paid') THEN
+    INSERT INTO public.financial_transactions (
+      transaction_date,
+      description,
+      amount,
+      type,
+      category,
+      related_appointment_id
+    )
+    VALUES (
+      NEW.start_time,
+      'Serviço realizado',
+      NEW.final_price,
+      'income',
+      'Serviços',
+      NEW.id
+    );
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- TOC entry 557 (class 1255 OID 29492)
+-- Name: handle_new_sale(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION "public"."handle_new_sale"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  INSERT INTO public.financial_transactions (
+    transaction_date,
+    description,
+    amount,
+    type,
+    category,
+    related_sale_id,
+    payment_method
+  )
+  VALUES (
+    new.sale_date,
+    'Venda de produtos',
+    new.total_amount,
+    'income',
+    'Vendas',
+    new.id,
+    new.payment_method
+  );
+  RETURN new;
+END;
+$$;
+
+
+--
+-- TOC entry 544 (class 1255 OID 29200)
+-- Name: handle_new_user(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email)
+  VALUES (new.id, new.email);
+  RETURN new;
+END;
+$$;
+
+
+SET default_tablespace = '';
+
+SET default_table_access_method = "heap";
+
+--
+-- TOC entry 293 (class 1259 OID 29168)
+-- Name: appointment_services; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE "public"."appointment_services" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "appointment_id" "uuid" NOT NULL,
+    "service_id" "uuid" NOT NULL,
+    "price" numeric NOT NULL,
+    "final_price" numeric DEFAULT 0
+);
+
+
+--
+-- TOC entry 292 (class 1259 OID 29148)
+-- Name: appointments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE "public"."appointments" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "client_id" "uuid" NOT NULL,
+    "start_time" timestamp with time zone NOT NULL,
+    "end_time" timestamp with time zone NOT NULL,
+    "status" "text" DEFAULT 'scheduled'::"text" NOT NULL,
+    "notes" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "created_by" "uuid",
+    "final_price" numeric DEFAULT 0,
+    "recurrence" "text",
+    "payment_date" timestamp with time zone,
+    "payment_status" "text" DEFAULT 'paid'::"text" NOT NULL
+);
+
+
+--
+-- TOC entry 310 (class 1259 OID 42225)
+-- Name: blocked_schedules; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE "public"."blocked_schedules" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "start_time" timestamp with time zone NOT NULL,
+    "end_time" timestamp with time zone NOT NULL,
+    "reason" "text",
+    "created_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+--
+-- TOC entry 290 (class 1259 OID 29118)
+-- Name: clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE "public"."clients" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "name" "text" NOT NULL,
+    "phone" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "created_by" "uuid"
+);
+
+
+--
+-- TOC entry 304 (class 1259 OID 29458)
+-- Name: financial_transactions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE "public"."financial_transactions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "transaction_date" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "description" "text" NOT NULL,
+    "amount" numeric NOT NULL,
+    "type" "text" NOT NULL,
+    "category" "text",
+    "related_sale_id" "uuid",
+    "related_appointment_id" "uuid",
+    "payment_method" "text",
+    "notes" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "created_by" "uuid"
+);
+
+
+--
+-- TOC entry 294 (class 1259 OID 29202)
+-- Name: inventory; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE "public"."inventory" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "name" "text" NOT NULL,
+    "quantity" integer DEFAULT 0 NOT NULL,
+    "cost_price" numeric DEFAULT 0 NOT NULL,
+    "selling_price" numeric DEFAULT 0 NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "created_by" "uuid",
+    "category" "text" DEFAULT 'Geral'::"text"
+);
+
+
+--
+-- TOC entry 289 (class 1259 OID 29103)
+-- Name: profiles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE "public"."profiles" (
+    "id" "uuid" NOT NULL,
+    "email" "text" NOT NULL,
+    "name" "text",
+    "created_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+--
+-- TOC entry 303 (class 1259 OID 29437)
+-- Name: sale_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE "public"."sale_items" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "sale_id" "uuid" NOT NULL,
+    "inventory_id" "uuid" NOT NULL,
+    "quantity" integer DEFAULT 1 NOT NULL,
+    "unit_price" numeric DEFAULT 0 NOT NULL,
+    "total_price" numeric DEFAULT 0 NOT NULL
+);
+
+
+--
+-- TOC entry 302 (class 1259 OID 29421)
+-- Name: sales; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE "public"."sales" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "sale_date" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "total_amount" numeric DEFAULT 0 NOT NULL,
+    "payment_method" "text",
+    "notes" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "created_by" "uuid",
+    "client_id" "uuid"
+);
+
+
+--
+-- TOC entry 291 (class 1259 OID 29132)
+-- Name: services; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE "public"."services" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "name" "text" NOT NULL,
+    "price" numeric DEFAULT 0 NOT NULL,
+    "duration" integer DEFAULT 60 NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "created_by" "uuid"
+);
+
+
+--
+-- TOC entry 3760 (class 2606 OID 29175)
+-- Name: appointment_services appointment_services_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."appointment_services"
+    ADD CONSTRAINT "appointment_services_pkey" PRIMARY KEY ("id");
+
+
+--
+-- TOC entry 3758 (class 2606 OID 29157)
+-- Name: appointments appointments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."appointments"
+    ADD CONSTRAINT "appointments_pkey" PRIMARY KEY ("id");
+
+
+--
+-- TOC entry 3770 (class 2606 OID 42233)
+-- Name: blocked_schedules blocked_schedules_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."blocked_schedules"
+    ADD CONSTRAINT "blocked_schedules_pkey" PRIMARY KEY ("id");
+
+
+--
+-- TOC entry 3754 (class 2606 OID 29126)
+-- Name: clients clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."clients"
+    ADD CONSTRAINT "clients_pkey" PRIMARY KEY ("id");
+
+
+--
+-- TOC entry 3768 (class 2606 OID 29467)
+-- Name: financial_transactions financial_transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."financial_transactions"
+    ADD CONSTRAINT "financial_transactions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- TOC entry 3762 (class 2606 OID 29213)
+-- Name: inventory inventory_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."inventory"
+    ADD CONSTRAINT "inventory_pkey" PRIMARY KEY ("id");
+
+
+--
+-- TOC entry 3750 (class 2606 OID 29112)
+-- Name: profiles profiles_email_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."profiles"
+    ADD CONSTRAINT "profiles_email_key" UNIQUE ("email");
+
+
+--
+-- TOC entry 3752 (class 2606 OID 29110)
+-- Name: profiles profiles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."profiles"
+    ADD CONSTRAINT "profiles_pkey" PRIMARY KEY ("id");
+
+
+--
+-- TOC entry 3766 (class 2606 OID 29447)
+-- Name: sale_items sale_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."sale_items"
+    ADD CONSTRAINT "sale_items_pkey" PRIMARY KEY ("id");
+
+
+--
+-- TOC entry 3764 (class 2606 OID 29431)
+-- Name: sales sales_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."sales"
+    ADD CONSTRAINT "sales_pkey" PRIMARY KEY ("id");
+
+
+--
+-- TOC entry 3756 (class 2606 OID 29142)
+-- Name: services services_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."services"
+    ADD CONSTRAINT "services_pkey" PRIMARY KEY ("id");
+
+
+--
+-- TOC entry 3786 (class 2620 OID 92126)
+-- Name: appointments handle_completed_appointment_trigger; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER "handle_completed_appointment_trigger" BEFORE UPDATE ON "public"."appointments" FOR EACH ROW EXECUTE FUNCTION "public"."handle_completed_appointment"();
+
+
+--
+-- TOC entry 3787 (class 2620 OID 29519)
+-- Name: sales on_sale_created; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER "on_sale_created" AFTER INSERT ON "public"."sales" FOR EACH ROW EXECUTE FUNCTION "public"."handle_new_sale"();
+
+
+--
+-- TOC entry 3776 (class 2606 OID 29176)
+-- Name: appointment_services appointment_services_appointment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."appointment_services"
+    ADD CONSTRAINT "appointment_services_appointment_id_fkey" FOREIGN KEY ("appointment_id") REFERENCES "public"."appointments"("id") ON DELETE CASCADE;
+
+
+--
+-- TOC entry 3777 (class 2606 OID 29181)
+-- Name: appointment_services appointment_services_service_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."appointment_services"
+    ADD CONSTRAINT "appointment_services_service_id_fkey" FOREIGN KEY ("service_id") REFERENCES "public"."services"("id");
+
+
+--
+-- TOC entry 3774 (class 2606 OID 29158)
+-- Name: appointments appointments_client_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."appointments"
+    ADD CONSTRAINT "appointments_client_id_fkey" FOREIGN KEY ("client_id") REFERENCES "public"."clients"("id");
+
+
+--
+-- TOC entry 3775 (class 2606 OID 29163)
+-- Name: appointments appointments_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."appointments"
+    ADD CONSTRAINT "appointments_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."profiles"("id");
+
+
+--
+-- TOC entry 3772 (class 2606 OID 29127)
+-- Name: clients clients_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."clients"
+    ADD CONSTRAINT "clients_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."profiles"("id");
+
+
+--
+-- TOC entry 3783 (class 2606 OID 29478)
+-- Name: financial_transactions financial_transactions_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."financial_transactions"
+    ADD CONSTRAINT "financial_transactions_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."profiles"("id");
+
+
+--
+-- TOC entry 3784 (class 2606 OID 29754)
+-- Name: financial_transactions financial_transactions_related_appointment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."financial_transactions"
+    ADD CONSTRAINT "financial_transactions_related_appointment_id_fkey" FOREIGN KEY ("related_appointment_id") REFERENCES "public"."appointments"("id") ON DELETE SET NULL;
+
+
+--
+-- TOC entry 3785 (class 2606 OID 29554)
+-- Name: financial_transactions financial_transactions_related_sale_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."financial_transactions"
+    ADD CONSTRAINT "financial_transactions_related_sale_id_fkey" FOREIGN KEY ("related_sale_id") REFERENCES "public"."sales"("id") ON DELETE CASCADE;
+
+
+--
+-- TOC entry 3778 (class 2606 OID 29214)
+-- Name: inventory inventory_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."inventory"
+    ADD CONSTRAINT "inventory_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."profiles"("id");
+
+
+--
+-- TOC entry 3771 (class 2606 OID 29113)
+-- Name: profiles profiles_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."profiles"
+    ADD CONSTRAINT "profiles_id_fkey" FOREIGN KEY ("id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- TOC entry 3781 (class 2606 OID 29453)
+-- Name: sale_items sale_items_inventory_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."sale_items"
+    ADD CONSTRAINT "sale_items_inventory_id_fkey" FOREIGN KEY ("inventory_id") REFERENCES "public"."inventory"("id");
+
+
+--
+-- TOC entry 3782 (class 2606 OID 29448)
+-- Name: sale_items sale_items_sale_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."sale_items"
+    ADD CONSTRAINT "sale_items_sale_id_fkey" FOREIGN KEY ("sale_id") REFERENCES "public"."sales"("id") ON DELETE CASCADE;
+
+
+--
+-- TOC entry 3779 (class 2606 OID 29522)
+-- Name: sales sales_client_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."sales"
+    ADD CONSTRAINT "sales_client_id_fkey" FOREIGN KEY ("client_id") REFERENCES "public"."clients"("id");
+
+
+--
+-- TOC entry 3780 (class 2606 OID 29432)
+-- Name: sales sales_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."sales"
+    ADD CONSTRAINT "sales_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."profiles"("id");
+
+
+--
+-- TOC entry 3773 (class 2606 OID 29143)
+-- Name: services services_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY "public"."services"
+    ADD CONSTRAINT "services_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."profiles"("id");
+
+
+--
+-- TOC entry 3974 (class 3256 OID 29732)
+-- Name: appointments Staff can delete appointments; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can delete appointments" ON "public"."appointments" FOR DELETE TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3973 (class 3256 OID 29632)
+-- Name: financial_transactions Staff can delete financial transactions; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can delete financial transactions" ON "public"."financial_transactions" FOR DELETE TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3972 (class 3256 OID 29559)
+-- Name: sales Staff can delete sales; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can delete sales" ON "public"."sales" FOR DELETE TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3958 (class 3256 OID 29198)
+-- Name: appointment_services Staff can insert appointment services; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can insert appointment services" ON "public"."appointment_services" FOR INSERT TO "authenticated" WITH CHECK (true);
+
+
+--
+-- TOC entry 3955 (class 3256 OID 29195)
+-- Name: appointments Staff can insert appointments; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can insert appointments" ON "public"."appointments" FOR INSERT TO "authenticated" WITH CHECK (true);
+
+
+--
+-- TOC entry 3949 (class 3256 OID 29189)
+-- Name: clients Staff can insert clients; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can insert clients" ON "public"."clients" FOR INSERT TO "authenticated" WITH CHECK (true);
+
+
+--
+-- TOC entry 3970 (class 3256 OID 29490)
+-- Name: financial_transactions Staff can insert financial_transactions; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can insert financial_transactions" ON "public"."financial_transactions" FOR INSERT TO "authenticated" WITH CHECK (true);
+
+
+--
+-- TOC entry 3961 (class 3256 OID 29222)
+-- Name: inventory Staff can insert inventory; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can insert inventory" ON "public"."inventory" FOR INSERT TO "authenticated" WITH CHECK (true);
+
+
+--
+-- TOC entry 3967 (class 3256 OID 29487)
+-- Name: sale_items Staff can insert sale_items; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can insert sale_items" ON "public"."sale_items" FOR INSERT TO "authenticated" WITH CHECK (true);
+
+
+--
+-- TOC entry 3964 (class 3256 OID 29484)
+-- Name: sales Staff can insert sales; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can insert sales" ON "public"."sales" FOR INSERT TO "authenticated" WITH CHECK (true);
+
+
+--
+-- TOC entry 3952 (class 3256 OID 29192)
+-- Name: services Staff can insert services; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can insert services" ON "public"."services" FOR INSERT TO "authenticated" WITH CHECK (true);
+
+
+--
+-- TOC entry 3959 (class 3256 OID 29199)
+-- Name: appointment_services Staff can update appointment services; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can update appointment services" ON "public"."appointment_services" FOR UPDATE TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3956 (class 3256 OID 29196)
+-- Name: appointments Staff can update appointments; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can update appointments" ON "public"."appointments" FOR UPDATE TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3950 (class 3256 OID 29190)
+-- Name: clients Staff can update clients; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can update clients" ON "public"."clients" FOR UPDATE TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3971 (class 3256 OID 29491)
+-- Name: financial_transactions Staff can update financial_transactions; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can update financial_transactions" ON "public"."financial_transactions" FOR UPDATE TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3962 (class 3256 OID 29223)
+-- Name: inventory Staff can update inventory; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can update inventory" ON "public"."inventory" FOR UPDATE TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3968 (class 3256 OID 29488)
+-- Name: sale_items Staff can update sale_items; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can update sale_items" ON "public"."sale_items" FOR UPDATE TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3965 (class 3256 OID 29485)
+-- Name: sales Staff can update sales; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can update sales" ON "public"."sales" FOR UPDATE TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3953 (class 3256 OID 29193)
+-- Name: services Staff can update services; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can update services" ON "public"."services" FOR UPDATE TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3957 (class 3256 OID 29197)
+-- Name: appointment_services Staff can view all appointment services; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can view all appointment services" ON "public"."appointment_services" FOR SELECT TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3954 (class 3256 OID 29194)
+-- Name: appointments Staff can view all appointments; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can view all appointments" ON "public"."appointments" FOR SELECT TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3948 (class 3256 OID 29188)
+-- Name: clients Staff can view all clients; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can view all clients" ON "public"."clients" FOR SELECT TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3969 (class 3256 OID 29489)
+-- Name: financial_transactions Staff can view all financial_transactions; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can view all financial_transactions" ON "public"."financial_transactions" FOR SELECT TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3960 (class 3256 OID 29221)
+-- Name: inventory Staff can view all inventory; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can view all inventory" ON "public"."inventory" FOR SELECT TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3966 (class 3256 OID 29486)
+-- Name: sale_items Staff can view all sale_items; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can view all sale_items" ON "public"."sale_items" FOR SELECT TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3963 (class 3256 OID 29483)
+-- Name: sales Staff can view all sales; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can view all sales" ON "public"."sales" FOR SELECT TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3951 (class 3256 OID 29191)
+-- Name: services Staff can view all services; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can view all services" ON "public"."services" FOR SELECT TO "authenticated" USING (true);
+
+
+--
+-- TOC entry 3947 (class 3256 OID 29187)
+-- Name: profiles Users can update their own profile; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can update their own profile" ON "public"."profiles" FOR UPDATE USING (("auth"."uid"() = "id"));
+
+
+--
+-- TOC entry 3946 (class 3256 OID 29186)
+-- Name: profiles Users can view their own profile; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can view their own profile" ON "public"."profiles" FOR SELECT USING (("auth"."uid"() = "id"));
+
+
+--
+-- TOC entry 3975 (class 3256 OID 58823)
+-- Name: clients apagar tudo; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "apagar tudo" ON "public"."clients" TO "authenticated" USING (("auth"."uid"() = "created_by"));
+
+
+--
+-- TOC entry 3941 (class 0 OID 29168)
+-- Dependencies: 293
+-- Name: appointment_services; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE "public"."appointment_services" ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3940 (class 0 OID 29148)
+-- Dependencies: 292
+-- Name: appointments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE "public"."appointments" ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3938 (class 0 OID 29118)
+-- Dependencies: 290
+-- Name: clients; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE "public"."clients" ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3945 (class 0 OID 29458)
+-- Dependencies: 304
+-- Name: financial_transactions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE "public"."financial_transactions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3942 (class 0 OID 29202)
+-- Dependencies: 294
+-- Name: inventory; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE "public"."inventory" ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3937 (class 0 OID 29103)
+-- Dependencies: 289
+-- Name: profiles; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE "public"."profiles" ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3944 (class 0 OID 29437)
+-- Dependencies: 303
+-- Name: sale_items; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE "public"."sale_items" ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3943 (class 0 OID 29421)
+-- Dependencies: 302
+-- Name: sales; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE "public"."sales" ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3939 (class 0 OID 29132)
+-- Dependencies: 291
+-- Name: services; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE "public"."services" ENABLE ROW LEVEL SECURITY;
+
+-- Completed on 2025-04-28 21:25:18 -03
+
+--
+-- PostgreSQL database dump complete
+--
+
