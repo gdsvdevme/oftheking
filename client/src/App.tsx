@@ -10,6 +10,7 @@ import Clientes from "@/pages/clientes";
 import Servicos from "@/pages/servicos";
 import Financeiro from "@/pages/financeiro";
 import Estoque from "@/pages/estoque";
+import Supabase from "@/pages/supabase";
 import Login from "@/pages/login";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/auth/protected-route";
@@ -74,6 +75,14 @@ function Router() {
         {() => (
           <ProtectedLayout>
             <Estoque />
+          </ProtectedLayout>
+        )}
+      </Route>
+      
+      <Route path="/supabase">
+        {() => (
+          <ProtectedLayout>
+            <Supabase />
           </ProtectedLayout>
         )}
       </Route>

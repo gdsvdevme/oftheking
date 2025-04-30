@@ -27,6 +27,7 @@ export default function Navbar() {
     { title: "Serviços", href: "/servicos" },
     { title: "Financeiro", href: "/financeiro" },
     { title: "Estoque", href: "/estoque" },
+    { title: "Supabase", href: "/supabase" },
   ];
 
   const isActive = (path: string) => {

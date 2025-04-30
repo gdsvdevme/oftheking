@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
+import { syncDataWithSupabase, supabaseAdmin } from "./supabase-admin";
 import { 
   insertClientSchema, 
   insertServiceSchema, 
@@ -436,6 +437,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(summary);
     } catch (error) {
       res.status(500).json({ message: "Erro ao buscar resumo financeiro" });
+    }
+  });
+  
+  // Rotas do Supabase
+  app.get("/api/supabase/sync", async (req, res) => {
+    try {
+      const result = await syncDataWithSupabase();
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao sincronizar com Supabase", error: error.message });
+    }
+  });
+  
+  app.get("/api/supabase/profiles", async (req, res) => {
+    try {
+      const { data, error } = await supabaseAdmin.from('profiles').select('*');
+      
+      if (error) {
+        return res.status(500).json({ message: "Erro ao buscar perfis do Supabase", error: error.message });
+      }
+      
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao acessar dados do Supabase", error: error.message });
+    }
+  });
+  
+  app.get("/api/supabase/users", async (req, res) => {
+    try {
+      const { data, error } = await supabaseAdmin.auth.admin.listUsers();
+      
+      if (error) {
+        return res.status(500).json({ message: "Erro ao buscar usuários do Supabase", error: error.message });
+      }
+      
+      res.json(data.users);
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao acessar usuários do Supabase", error: error.message });
     }
   });
 
