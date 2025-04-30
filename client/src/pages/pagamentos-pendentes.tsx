@@ -215,9 +215,11 @@ export default function PagamentosPendentes() {
     },
   });
   
+  // Todos os agendamentos vêm do servidor
+  const allAppointments = data?.appointments || [];
+    
   // Filtrar agendamentos
-  const pendingPayments = Array.isArray(data?.appointments)
-    ? data.appointments.filter((appointment: any) => {
+  const pendingPayments = allAppointments.filter((appointment: any) => {
         // Filtro básico por status de pagamento
         const matchesPaymentStatus = activeTab === "all" || 
           (activeTab === "pending" && appointment.payment_status === "pending") ||
@@ -232,8 +234,7 @@ export default function PagamentosPendentes() {
         const nameMatch = appointment.client?.name?.toLowerCase().includes(searchLower);
         
         return matchesPaymentStatus && matchesStatus && (searchQuery === "" || nameMatch);
-      })
-    : [];
+      });
   
   // Paginação
   const itemsPerPage = 10;
