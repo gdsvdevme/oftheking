@@ -157,6 +157,193 @@ function PaymentModal({
   );
 }
 
+// Modal para mostrar detalhes do cliente e todos os seus pagamentos pendentes
+function ClientPaymentsModal({ 
+  open, 
+  onClose, 
+  client, 
+  appointments, 
+  onConfirmPayment,
+  onBulkPayment
+}: { 
+  open: boolean; 
+  onClose: () => void; 
+  client: any;
+  appointments: any[];
+  onConfirmPayment: (id: string, method: string) => void;
+  onBulkPayment: (ids: string[], method: string) => void;
+}) {
+  const [paymentMethod, setPaymentMethod] = useState("dinheiro");
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [showSinglePaymentModal, setShowSinglePaymentModal] = useState(false);
+  
+  if (!client || !appointments.length) return null;
+  
+  // Calcular valor total de todos os agendamentos
+  const totalValue = appointments.reduce((total, appointment) => {
+    const appointmentTotal = appointment.services?.reduce((serviceTotal: number, service: any) => {
+      const price = typeof service.final_price !== 'undefined' && service.final_price !== null
+        ? (typeof service.final_price === 'number' 
+          ? service.final_price 
+          : parseFloat(service.final_price || '0'))
+        : (typeof service.services?.price === 'number' 
+          ? service.services.price 
+          : parseFloat(service.services?.price || '0'));
+      return serviceTotal + price;
+    }, 0) || 0;
+    
+    return total + appointmentTotal;
+  }, 0);
+  
+  const handlePayAll = () => {
+    const appointmentIds = appointments.map(appointment => appointment.id);
+    onBulkPayment(appointmentIds, paymentMethod);
+  };
+  
+  const handleOpenSinglePayment = (appointment: any) => {
+    setSelectedAppointment(appointment);
+    setShowSinglePaymentModal(true);
+  };
+  
+  return (
+    <>
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Pagamentos Pendentes - {client.name}</DialogTitle>
+            <DialogDescription>
+              Lista de todos os pagamentos pendentes para este cliente
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="mt-4">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <p className="text-sm font-medium">Cliente: {client.name}</p>
+                <p className="text-sm text-muted-foreground">Total a receber: R$ {totalValue.toFixed(2).replace('.', ',')}</p>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Forma de pagamento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                    <SelectItem value="pix">PIX</SelectItem>
+                    <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
+                    <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Button onClick={handlePayAll}>
+                  <Check className="h-4 w-4 mr-1" />
+                  Pagar Todos
+                </Button>
+              </div>
+            </div>
+            
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Serviços</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {appointments.map((appointment) => {
+                    const startTime = appointment.start_time ? new Date(appointment.start_time) : null;
+                    const formattedDate = startTime 
+                      ? format(startTime, "dd/MM/yyyy • HH:mm", { locale: ptBR }) 
+                      : 'Data não definida';
+                    
+                    // Calcular valor total
+                    const totalValue = appointment.services?.reduce((total: number, service: any) => {
+                      const price = typeof service.final_price !== 'undefined' && service.final_price !== null
+                        ? (typeof service.final_price === 'number' 
+                          ? service.final_price 
+                          : parseFloat(service.final_price || '0'))
+                        : (typeof service.services?.price === 'number' 
+                          ? service.services.price 
+                          : parseFloat(service.services?.price || '0'));
+                      return total + price;
+                    }, 0) || 0;
+                    
+                    // Lista de serviços
+                    const servicesList = appointment.services?.map((s: any) => s.services?.name).join(", ") || "Sem serviços";
+                    
+                    return (
+                      <TableRow key={appointment.id}>
+                        <TableCell className="whitespace-nowrap">
+                          <div className="flex items-center">
+                            <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                            {formattedDate}
+                          </div>
+                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate" title={servicesList}>
+                          {servicesList}
+                        </TableCell>
+                        <TableCell>
+                          R$ {totalValue.toFixed(2).replace('.', ',')}
+                        </TableCell>
+                        <TableCell>
+                          {appointment.status === "scheduled" && (
+                            <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Agendado</Badge>
+                          )}
+                          {appointment.status === "confirmed" && (
+                            <Badge variant="outline" className="bg-blue-100 text-blue-800">Confirmado</Badge>
+                          )}
+                          {appointment.status === "completed" && (
+                            <Badge variant="outline" className="bg-green-100 text-green-800">Concluído</Badge>
+                          )}
+                          {appointment.status === "cancelled" && (
+                            <Badge variant="outline" className="bg-red-100 text-red-800">Cancelado</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleOpenSinglePayment(appointment)}
+                          >
+                            <Check className="h-4 w-4 mr-1" />
+                            Pagar
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Modal para pagamento individual */}
+      {selectedAppointment && (
+        <PaymentModal
+          open={showSinglePaymentModal}
+          onClose={() => setShowSinglePaymentModal(false)}
+          appointment={selectedAppointment}
+          onConfirmPayment={(id, method) => {
+            onConfirmPayment(id, method);
+            setShowSinglePaymentModal(false);
+          }}
+        />
+      )}
+    </>
+  );
+}
+
 export default function PagamentosPendentes() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -164,6 +351,8 @@ export default function PagamentosPendentes() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [showClientModal, setShowClientModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [activeTab, setActiveTab] = useState<string>("pending");
   
@@ -210,10 +399,53 @@ export default function PagamentosPendentes() {
         description: "O status do pagamento foi atualizado com sucesso.",
       });
       setShowPaymentModal(false);
+      setShowClientModal(false);
     },
     onError: (error: Error) => {
       toast({
         title: "Erro ao atualizar pagamento",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Mutação para pagamento em lote
+  const bulkUpdatePaymentStatusMutation = useMutation({
+    mutationFn: async ({ ids, paymentStatus, paymentMethod }: { ids: string[]; paymentStatus: string; paymentMethod: string }) => {
+      // Processar cada atualização individualmente
+      const promises = ids.map(id => 
+        fetch(`/api/appointments/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            payment_status: paymentStatus,
+            payment_method: paymentMethod,
+            payment_date: new Date().toISOString(),
+          }),
+        }).then(response => {
+          if (!response.ok) {
+            throw new Error(`Erro ao atualizar pagamento #${id}`);
+          }
+          return response.json();
+        })
+      );
+      
+      return Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/appointments'] });
+      toast({
+        title: "Pagamentos atualizados",
+        description: "Todos os pagamentos foram processados com sucesso.",
+      });
+      setShowClientModal(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao processar pagamentos",
         description: error.message,
         variant: "destructive",
       });
@@ -241,10 +473,29 @@ export default function PagamentosPendentes() {
         return matchesPaymentStatus && matchesStatus && (searchQuery === "" || nameMatch);
       });
   
+  // Agrupar por cliente
+  const clientMap = new Map();
+  
+  pendingPayments.forEach((appointment: any) => {
+    if (appointment.client) {
+      const clientId = appointment.client.id;
+      if (!clientMap.has(clientId)) {
+        clientMap.set(clientId, {
+          client: appointment.client,
+          appointments: []
+        });
+      }
+      
+      clientMap.get(clientId).appointments.push(appointment);
+    }
+  });
+  
+  const clientGroups = Array.from(clientMap.values());
+  
   // Paginação
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(pendingPayments.length / itemsPerPage);
-  const paginatedItems = pendingPayments.slice(
+  const totalPages = Math.ceil(clientGroups.length / itemsPerPage);
+  const paginatedClients = clientGroups.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -255,11 +506,33 @@ export default function PagamentosPendentes() {
     setShowPaymentModal(true);
   };
   
+  const handleOpenClientModal = (client: any, appointments: any[]) => {
+    setSelectedClient(client);
+    // Filtrar apenas pagamentos pendentes se estivermos na aba "pendentes"
+    const filteredAppointments = activeTab === "pending" 
+      ? appointments.filter(a => a.payment_status === "pending")
+      : appointments;
+    
+    setSelectedClient({
+      ...client,
+      pendingAppointments: filteredAppointments
+    });
+    setShowClientModal(true);
+  };
+  
   const handleConfirmPayment = (id: string, paymentMethod: string) => {
     updatePaymentStatusMutation.mutate({ 
       id, 
       paymentStatus: "paid",
       paymentMethod 
+    });
+  };
+  
+  const handleBulkPayment = (ids: string[], paymentMethod: string) => {
+    bulkUpdatePaymentStatusMutation.mutate({
+      ids,
+      paymentStatus: "paid",
+      paymentMethod
     });
   };
   
@@ -309,7 +582,7 @@ export default function PagamentosPendentes() {
             Pagamentos
           </h2>
           <p className="mt-1 text-sm text-gray-500">
-            Gerencie os pagamentos dos atendimentos
+            Gerencie os pagamentos dos atendimentos por cliente
           </p>
         </div>
         <div className="mt-4 md:mt-0 md:ml-4">
@@ -368,24 +641,22 @@ export default function PagamentosPendentes() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Cliente</TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Serviços</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Pagamento</TableHead>
+                    <TableHead>Telefone</TableHead>
+                    <TableHead>Total Pendente</TableHead>
+                    <TableHead>Atendimentos</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
+                      <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
                         Carregando pagamentos...
                       </TableCell>
                     </TableRow>
-                  ) : paginatedItems.length === 0 ? (
+                  ) : paginatedClients.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                         <div className="flex flex-col items-center justify-center space-y-2">
                           <AlertCircle className="h-8 w-8 text-muted-foreground/70" />
                           <p>Nenhum pagamento encontrado com os filtros selecionados.</p>
@@ -393,83 +664,61 @@ export default function PagamentosPendentes() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    paginatedItems.map((appointment: any) => {
-                      const startTime = appointment.start_time ? new Date(appointment.start_time) : null;
-                      const formattedDate = startTime 
-                        ? format(startTime, "dd/MM/yyyy • HH:mm", { locale: ptBR }) 
-                        : 'Data não definida';
+                    paginatedClients.map((clientGroup) => {
+                      const { client, appointments } = clientGroup;
                       
-                      // Calcular valor total utilizando o final_price
-                      const totalValue = appointment.services?.reduce((total: number, service: any) => {
-                        // Usar final_price se disponível, caso contrário usar o price
-                        const price = typeof service.final_price !== 'undefined' && service.final_price !== null
-                          ? (typeof service.final_price === 'number' 
-                            ? service.final_price 
-                            : parseFloat(service.final_price || '0'))
-                          : (typeof service.services?.price === 'number' 
-                            ? service.services.price 
-                            : parseFloat(service.services?.price || '0'));
-                        return total + price;
-                      }, 0) || 0;
+                      // Apenas pagamentos pendentes (se na aba pendentes)
+                      const pendingAppointments = activeTab === "pending" 
+                        ? appointments.filter((a: any) => a.payment_status === "pending")
+                        : appointments;
                       
-                      // Lista de serviços
-                      const servicesList = appointment.services?.map((s: any) => s.services?.name).join(", ") || "Sem serviços";
+                      if (pendingAppointments.length === 0) return null;
+                      
+                      // Calcular valor total de todos os agendamentos do cliente
+                      const totalValue = pendingAppointments.reduce((total: number, appointment: any) => {
+                        const appointmentTotal = appointment.services?.reduce((serviceTotal: number, service: any) => {
+                          const price = typeof service.final_price !== 'undefined' && service.final_price !== null
+                            ? (typeof service.final_price === 'number' 
+                              ? service.final_price 
+                              : parseFloat(service.final_price || '0'))
+                            : (typeof service.services?.price === 'number' 
+                              ? service.services.price 
+                              : parseFloat(service.services?.price || '0'));
+                          return serviceTotal + price;
+                        }, 0) || 0;
+                        
+                        return total + appointmentTotal;
+                      }, 0);
                       
                       return (
-                        <TableRow key={appointment.id}>
+                        <TableRow key={client.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleOpenClientModal(client, pendingAppointments)}>
                           <TableCell className="font-medium">
-                            {appointment.client?.name || "Cliente não identificado"}
+                            {client.name || "Cliente não identificado"}
                           </TableCell>
-                          <TableCell className="whitespace-nowrap">
-                            <div className="flex items-center">
-                              <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                              {formattedDate}
-                            </div>
-                          </TableCell>
-                          <TableCell className="max-w-[200px] truncate" title={servicesList}>
-                            {servicesList}
+                          <TableCell>
+                            {client.phone || "Não informado"}
                           </TableCell>
                           <TableCell>
                             R$ {totalValue.toFixed(2).replace('.', ',')}
                           </TableCell>
                           <TableCell>
-                            {getStatusBadge(appointment.status)}
-                          </TableCell>
-                          <TableCell>
-                            {getPaymentStatusBadge(appointment.payment_status)}
+                            {pendingAppointments.length} {pendingAppointments.length === 1 ? 'atendimento' : 'atendimentos'}
                           </TableCell>
                           <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              {appointment.payment_status === "pending" && (
-                                <>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm"
-                                    onClick={() => handleOpenPaymentModal(appointment)}
-                                  >
-                                    <Check className="h-4 w-4 mr-1" />
-                                    Pagar
-                                  </Button>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm"
-                                    onClick={() => handleCancelPayment(appointment.id)}
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                </>
-                              )}
-                              {appointment.payment_status === "paid" && (
-                                <Badge variant="outline" className="bg-green-50">
-                                  <Check className="h-3 w-3 mr-1" />
-                                  Pago
-                                </Badge>
-                              )}
-                            </div>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenClientModal(client, pendingAppointments);
+                              }}
+                            >
+                              Ver detalhes
+                            </Button>
                           </TableCell>
                         </TableRow>
                       );
-                    })
+                    }).filter(Boolean)
                   )}
                 </TableBody>
               </Table>
@@ -503,13 +752,25 @@ export default function PagamentosPendentes() {
         </CardContent>
       </Card>
       
-      {/* Modal de pagamento */}
+      {/* Modal de pagamento individual */}
       <PaymentModal
         open={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         appointment={selectedPayment}
         onConfirmPayment={handleConfirmPayment}
       />
+      
+      {/* Modal de pagamentos do cliente */}
+      {selectedClient && (
+        <ClientPaymentsModal
+          open={showClientModal}
+          onClose={() => setShowClientModal(false)}
+          client={selectedClient}
+          appointments={selectedClient.pendingAppointments || []}
+          onConfirmPayment={handleConfirmPayment}
+          onBulkPayment={handleBulkPayment}
+        />
+      )}
     </div>
   );
 }
