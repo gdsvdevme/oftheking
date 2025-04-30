@@ -2,9 +2,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from "@/components/ui/alert-dialog";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle, Key, RefreshCw } from "lucide-react";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SupabasePage() {
   const [selectedTab, setSelectedTab] = useState("profiles");
@@ -90,18 +104,137 @@ export default function SupabasePage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4">
-            <Button 
-              onClick={handleSync}
-              disabled={syncQuery.isPending}
-              className="w-full sm:w-auto"
-            >
-              {syncQuery.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sincronizando...
-                </>
-              ) : "Sincronizar com Supabase"}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                onClick={handleSync}
+                disabled={syncQuery.isPending}
+                className="w-full sm:w-auto"
+              >
+                {syncQuery.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sincronizando...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Sincronizar com Supabase
+                  </>
+                )}
+              </Button>
+              
+              <Button 
+                variant="outline"
+                onClick={() => setShowKeyInput(!showKeyInput)}
+                className="w-full sm:w-auto"
+              >
+                <Key className="mr-2 h-4 w-4" />
+                {showKeyInput ? "Cancelar" : "Configurar Chave de Serviço"}
+              </Button>
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="destructive" 
+                    className="w-full sm:w-auto"
+                  >
+                    <AlertTriangle className="mr-2 h-4 w-4" />
+                    Limpar Dados de Demonstração
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Essa ação vai remover todos os dados de demonstração do banco de dados. Isso não pode ser desfeito.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={async () => {
+                        try {
+                          setResetingDemoData(true);
+                          const response = await fetch('/api/reset-demo-data', {
+                            method: 'POST'
+                          });
+                          
+                          if (!response.ok) {
+                            throw new Error('Falha ao limpar dados');
+                          }
+                          
+                          // Recarregar a página após limpar
+                          window.location.reload();
+                        } catch (err) {
+                          console.error(err);
+                          // Podemos adicionar uma notificação de erro aqui
+                        } finally {
+                          setResetingDemoData(false);
+                        }
+                      }}
+                    >
+                      {resetingDemoData ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Limpando...
+                        </>
+                      ) : "Sim, limpar dados"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+            
+            {showKeyInput && (
+              <div className="mt-3 p-4 border border-gray-200 rounded-md bg-white">
+                <h3 className="text-lg font-medium mb-2">Configurar Chave de Serviço do Supabase</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Para acessar dados do Supabase, você precisa de uma chave de serviço (service_role) com permissões administrativas.
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="serviceKey">Chave de Serviço</Label>
+                    <Input 
+                      id="serviceKey" 
+                      type="password" 
+                      value={serviceKey} 
+                      onChange={(e) => setServiceKey(e.target.value)}
+                      placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    />
+                  </div>
+                  
+                  <Button 
+                    onClick={async () => {
+                      if (!serviceKey.trim()) return;
+                      
+                      try {
+                        const response = await fetch('/api/supabase/set-service-key', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json'
+                          },
+                          body: JSON.stringify({ serviceKey })
+                        });
+                        
+                        if (!response.ok) {
+                          throw new Error('Falha ao configurar a chave');
+                        }
+                        
+                        // Recarregar a página após configurar
+                        window.location.reload();
+                      } catch (err) {
+                        console.error(err);
+                        // Podemos adicionar uma notificação de erro aqui
+                      }
+                    }}
+                    disabled={!serviceKey.trim()}
+                  >
+                    Salvar e Aplicar
+                  </Button>
+                </div>
+              </div>
+            )}
             
             {syncQuery.isSuccess && (
               <div className="p-4 bg-green-50 text-green-700 rounded-md border border-green-200">

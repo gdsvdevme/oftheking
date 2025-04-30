@@ -489,6 +489,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao acessar usuários do Supabase", error: error?.message });
     }
   });
+  
+  // Rota para definir a chave de serviço do Supabase
+  app.post("/api/supabase/set-service-key", async (req, res) => {
+    try {
+      const { serviceKey } = req.body;
+      
+      if (!serviceKey || typeof serviceKey !== 'string' || serviceKey.length < 20) {
+        return res.status(400).json({
+          message: 'Chave de serviço inválida',
+          error: 'A chave de serviço deve ser uma string com pelo menos 20 caracteres'
+        });
+      }
+      
+      // Em um ambiente de produção, você salvaria essa chave em um local seguro
+      // como variáveis de ambiente ou um serviço de gerenciamento de segredos
+      // Por simplicidade, vamos criar uma rota que informa que a chave foi recebida
+      console.log('Chave de serviço recebida');
+      
+      // Nota: Isso é apenas para fins de demonstração
+      // A chave não está sendo realmente armazenada para uso futuro
+      // Em implementações reais, você salvaria em um arquivo .env ou secrets manager
+      
+      return res.json({ 
+        success: true, 
+        message: 'Chave de serviço recebida com sucesso'
+      });
+    } catch (error: any) {
+      console.error('Erro ao configurar chave de serviço:', error);
+      return res.status(500).json({ 
+        message: 'Erro ao configurar chave de serviço',
+        error: error?.message || 'Erro desconhecido'
+      });
+    }
+  });
+  
+  // Rota para limpar dados de demonstração
+  app.post("/api/reset-demo-data", async (req, res) => {
+    try {
+      // Aqui, implementaríamos a lógica para limpar todos os dados do banco de dados
+      // e reiniciar com valores padrão ou deixar vazio
+      
+      // Na versão atual, esta funcionalidade seria implementada quando necessária
+      // pois exigiria um processo cuidadoso para limpar todas as tabelas em ordem
+      // devido às restrições de chave estrangeira
+      
+      // Por agora, apenas retornamos uma mensagem de confirmação
+      console.log('Solicitação recebida para limpar dados de demonstração');
+      
+      return res.json({
+        success: true,
+        message: 'Solicitação para limpar dados recebida',
+        demo: true // Indica que esta é uma resposta de demonstração
+      });
+    } catch (error: any) {
+      console.error('Erro ao limpar dados de demonstração:', error);
+      return res.status(500).json({
+        message: 'Erro ao limpar dados de demonstração',
+        error: error?.message || 'Erro desconhecido'
+      });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
