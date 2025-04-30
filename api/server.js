@@ -1,165 +1,190 @@
-import express from 'express';
+// Abordagem serverless pura sem dependência do Express
+// Isso elimina a necessidade de um servidor HTTP persistente
 import { storage } from '../server/storage.js';
 import { initializeDatabase } from '../server/initData.js';
 
-// Variável para armazenar a instância iniciada do aplicativo Express
-let app;
-let initialized = false;
+// Controle de inicialização para manter conexão com o banco de dados
+let isInitialized = false;
 
-// Função para inicializar a aplicação (será executada apenas uma vez)
-async function initializeApp() {
-  if (initialized) return app;
-  
-  console.log('Inicializando aplicação serverless...');
-  
-  // Criar aplicação Express
-  app = express();
-  
-  // Configurações básicas
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
-  
-  // Configuração de CORS para produção
-  app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    
-    if (req.method === 'OPTIONS') {
-      return res.status(200).end();
+// Função para inicializar o banco de dados (chamada uma vez)
+async function ensureInitialized() {
+  if (!isInitialized) {
+    try {
+      console.log('Inicializando banco de dados...');
+      await initializeDatabase();
+      console.log('Banco de dados inicializado com sucesso.');
+      isInitialized = true;
+    } catch (err) {
+      console.error('Erro ao inicializar o banco de dados:', err);
+      throw err;
     }
-    
-    next();
-  });
-  
-  // Inicialização do banco de dados
-  try {
-    await initializeDatabase();
-    console.log('Banco de dados inicializado com sucesso.');
-  } catch (err) {
-    console.error('Erro ao inicializar o banco de dados:', err);
-    throw err;
   }
-  
-  // Configurar rotas
-  // Clientes
-  app.get('/api/clients', async (req, res) => {
+}
+
+// Configuração para CORS
+function setCorsHeaders(res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+}
+
+// Função para processar o corpo da requisição
+async function parseBody(req) {
+  return new Promise((resolve) => {
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        const parsedBody = body ? JSON.parse(body) : {};
+        resolve(parsedBody);
+      } catch (e) {
+        console.error('Erro ao processar corpo da requisição:', e);
+        resolve({});
+      }
+    });
+  });
+}
+
+// Função para lidar com rotas de API
+async function handleRoute(req, res) {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const path = url.pathname;
+  const method = req.method;
+
+  // Verificar solicitações OPTIONS (CORS preflight)
+  if (method === 'OPTIONS') {
+    setCorsHeaders(res);
+    res.statusCode = 204;
+    res.end();
+    return;
+  }
+
+  // Obter parâmetros da query
+  const params = {};
+  url.searchParams.forEach((value, key) => {
+    params[key] = value;
+  });
+
+  // Rotas para clientes
+  if (path === '/api/clients' && method === 'GET') {
     try {
       const clients = await storage.getClients();
-      res.json(clients);
+      setCorsHeaders(res);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify(clients));
     } catch (error) {
       console.error('Erro ao buscar clientes:', error);
-      res.status(500).json({ error: 'Erro ao buscar clientes' });
+      setCorsHeaders(res);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Erro ao buscar clientes' }));
     }
-  });
-  
-  app.get('/api/clients/:id', async (req, res) => {
+    return;
+  }
+
+  // Rota para cliente específico
+  if (path.match(/^\/api\/clients\/[^\/]+$/) && method === 'GET') {
     try {
-      const client = await storage.getClient(req.params.id);
+      const id = path.split('/').pop();
+      const client = await storage.getClient(id);
+      
       if (!client) {
-        return res.status(404).json({ error: 'Cliente não encontrado' });
+        setCorsHeaders(res);
+        res.statusCode = 404;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ error: 'Cliente não encontrado' }));
+        return;
       }
-      res.json(client);
+      
+      setCorsHeaders(res);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify(client));
     } catch (error) {
       console.error('Erro ao buscar cliente:', error);
-      res.status(500).json({ error: 'Erro ao buscar cliente' });
+      setCorsHeaders(res);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Erro ao buscar cliente' }));
     }
-  });
-  
-  // Serviços
-  app.get('/api/services', async (req, res) => {
+    return;
+  }
+
+  // Rota para serviços
+  if (path === '/api/services' && method === 'GET') {
     try {
       const services = await storage.getServices();
-      res.json(services);
+      setCorsHeaders(res);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify(services));
     } catch (error) {
       console.error('Erro ao buscar serviços:', error);
-      res.status(500).json({ error: 'Erro ao buscar serviços' });
+      setCorsHeaders(res);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Erro ao buscar serviços' }));
     }
-  });
-  
-  // Agendamentos
-  app.get('/api/appointments', async (req, res) => {
+    return;
+  }
+
+  // Rota para agendamentos
+  if (path === '/api/appointments' && method === 'GET') {
     try {
-      const { startDate, endDate, page, perPage } = req.query;
-      const start = startDate ? new Date(startDate) : undefined;
-      const end = endDate ? new Date(endDate) : undefined;
-      const pageNum = page ? parseInt(page) : undefined;
-      const perPageNum = perPage ? parseInt(perPage) : undefined;
+      const startDate = params.startDate ? new Date(params.startDate) : undefined;
+      const endDate = params.endDate ? new Date(params.endDate) : undefined;
+      const page = params.page ? parseInt(params.page) : undefined;
+      const perPage = params.perPage ? parseInt(params.perPage) : undefined;
       
-      const result = await storage.getAppointments(start, end, pageNum, perPageNum);
-      res.json(result);
+      const result = await storage.getAppointments(startDate, endDate, page, perPage);
+      setCorsHeaders(res);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify(result));
     } catch (error) {
       console.error('Erro ao buscar agendamentos:', error);
-      res.status(500).json({ error: 'Erro ao buscar agendamentos' });
+      setCorsHeaders(res);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Erro ao buscar agendamentos' }));
     }
-  });
-  
-  app.get('/api/appointments/:id', async (req, res) => {
+    return;
+  }
+
+  // Rota para agendamentos próximos
+  if (path === '/api/appointments/upcoming' && method === 'GET') {
     try {
-      const appointment = await storage.getAppointmentWithServices(req.params.id);
-      if (!appointment) {
-        return res.status(404).json({ error: 'Agendamento não encontrado' });
-      }
-      res.json(appointment);
+      const limit = params.limit ? parseInt(params.limit) : 10;
+      const appointments = await storage.getUpcomingAppointments(limit);
+      setCorsHeaders(res);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify(appointments));
     } catch (error) {
-      console.error('Erro ao buscar agendamento:', error);
-      res.status(500).json({ error: 'Erro ao buscar agendamento' });
+      console.error('Erro ao buscar agendamentos próximos:', error);
+      setCorsHeaders(res);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Erro ao buscar agendamentos próximos' }));
     }
-  });
-  
-  app.patch('/api/appointments/:id', async (req, res) => {
+    return;
+  }
+
+  // Rota para pagamento em lote
+  if (path === '/api/appointments/bulk-payment' && method === 'POST') {
     try {
-      const id = req.params.id;
-      const updateData = req.body;
-      
-      const appointment = await storage.updateAppointment(id, updateData);
-      if (!appointment) {
-        return res.status(404).json({ error: 'Agendamento não encontrado' });
-      }
-      
-      res.json(appointment);
-    } catch (error) {
-      console.error('Erro ao atualizar agendamento:', error);
-      res.status(500).json({ error: 'Erro ao atualizar agendamento' });
-    }
-  });
-  
-  // Endpoint específico para atualização de status de pagamento
-  app.patch('/api/appointments/:id/payment-status', async (req, res) => {
-    try {
-      const id = req.params.id;
-      const { paymentStatus, paymentMethod, status } = req.body;
-      
-      const updateData = {
-        payment_status: paymentStatus,
-        payment_method: paymentMethod,
-        payment_date: new Date().toISOString()
-      };
-      
-      // Se status também foi fornecido, adicionar ao updateData
-      if (status) {
-        updateData.status = status;
-      }
-      
-      const appointment = await storage.updateAppointment(id, updateData);
-      if (!appointment) {
-        return res.status(404).json({ error: 'Agendamento não encontrado' });
-      }
-      
-      res.json(appointment);
-    } catch (error) {
-      console.error('Erro ao atualizar status de pagamento:', error);
-      res.status(500).json({ error: 'Erro ao atualizar status de pagamento' });
-    }
-  });
-  
-  // Endpoint para processamento de pagamentos em lote
-  app.post('/api/appointments/bulk-payment', async (req, res) => {
-    try {
-      const { ids, paymentStatus, paymentMethod, status } = req.body;
+      const body = await parseBody(req);
+      const { ids, paymentStatus, paymentMethod, status } = body;
       
       if (!Array.isArray(ids) || ids.length === 0) {
-        return res.status(400).json({ error: 'Lista de IDs inválida' });
+        setCorsHeaders(res);
+        res.statusCode = 400;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ error: 'Lista de IDs inválida' }));
+        return;
       }
       
       const updateData = {
@@ -189,62 +214,162 @@ async function initializeApp() {
         }
       }
       
-      res.json({
+      setCorsHeaders(res);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({
         success: results.length,
         failed: errors.length,
         results,
         errors: errors.length > 0 ? errors : undefined
-      });
+      }));
     } catch (error) {
       console.error('Erro ao processar pagamentos em lote:', error);
-      res.status(500).json({ error: 'Erro ao processar pagamentos em lote' });
+      setCorsHeaders(res);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Erro ao processar pagamentos em lote' }));
     }
-  });
-  
-  // Bloqueios de horário
-  app.get('/api/blocked-schedules', async (req, res) => {
+    return;
+  }
+
+  // Rota para agendamento específico
+  if (path.match(/^\/api\/appointments\/[^\/]+$/) && method === 'GET') {
     try {
-      const { startDate, endDate } = req.query;
-      const start = startDate ? new Date(startDate) : undefined;
-      const end = endDate ? new Date(endDate) : undefined;
+      const id = path.split('/').pop();
+      const appointment = await storage.getAppointmentWithServices(id);
       
-      const blockedSchedules = await storage.getBlockedSchedules(start, end);
-      res.json(blockedSchedules);
+      if (!appointment) {
+        setCorsHeaders(res);
+        res.statusCode = 404;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ error: 'Agendamento não encontrado' }));
+        return;
+      }
+      
+      setCorsHeaders(res);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify(appointment));
+    } catch (error) {
+      console.error('Erro ao buscar agendamento:', error);
+      setCorsHeaders(res);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Erro ao buscar agendamento' }));
+    }
+    return;
+  }
+
+  // Rota para atualizar agendamento
+  if (path.match(/^\/api\/appointments\/[^\/]+$/) && method === 'PATCH') {
+    try {
+      const id = path.split('/').pop();
+      const updateData = await parseBody(req);
+      
+      const appointment = await storage.updateAppointment(id, updateData);
+      if (!appointment) {
+        setCorsHeaders(res);
+        res.statusCode = 404;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ error: 'Agendamento não encontrado' }));
+        return;
+      }
+      
+      setCorsHeaders(res);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify(appointment));
+    } catch (error) {
+      console.error('Erro ao atualizar agendamento:', error);
+      setCorsHeaders(res);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Erro ao atualizar agendamento' }));
+    }
+    return;
+  }
+
+  // Rota para atualizar status de pagamento
+  if (path.match(/^\/api\/appointments\/[^\/]+\/payment-status$/) && method === 'PATCH') {
+    try {
+      const id = path.split('/')[3];  // Extrair ID do agendamento
+      const { paymentStatus, paymentMethod, status } = await parseBody(req);
+      
+      const updateData = {
+        payment_status: paymentStatus,
+        payment_method: paymentMethod,
+        payment_date: new Date().toISOString()
+      };
+      
+      if (status) {
+        updateData.status = status;
+      }
+      
+      const appointment = await storage.updateAppointment(id, updateData);
+      if (!appointment) {
+        setCorsHeaders(res);
+        res.statusCode = 404;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ error: 'Agendamento não encontrado' }));
+        return;
+      }
+      
+      setCorsHeaders(res);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify(appointment));
+    } catch (error) {
+      console.error('Erro ao atualizar status de pagamento:', error);
+      setCorsHeaders(res);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Erro ao atualizar status de pagamento' }));
+    }
+    return;
+  }
+
+  // Rota para bloqueios de horário
+  if (path === '/api/blocked-schedules' && method === 'GET') {
+    try {
+      const startDate = params.startDate ? new Date(params.startDate) : undefined;
+      const endDate = params.endDate ? new Date(params.endDate) : undefined;
+      
+      const blockedSchedules = await storage.getBlockedSchedules(startDate, endDate);
+      setCorsHeaders(res);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify(blockedSchedules));
     } catch (error) {
       console.error('Erro ao buscar horários bloqueados:', error);
-      res.status(500).json({ error: 'Erro ao buscar horários bloqueados' });
+      setCorsHeaders(res);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Erro ao buscar horários bloqueados' }));
     }
-  });
-  
-  // Tratamento de erros
-  app.use((err, _req, res, _next) => {
-    console.error(err);
-    const statusCode = err.statusCode || 500;
-    const message = err.message || 'Erro interno no servidor';
-    res.status(statusCode).json({ error: message });
-  });
-  
-  initialized = true;
-  return app;
+    return;
+  }
+
+  // Se chegamos aqui, a rota não foi encontrada
+  setCorsHeaders(res);
+  res.statusCode = 404;
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify({ error: 'Rota não encontrada' }));
 }
 
-// Função handler para o Vercel
+// Função handler principal para o Vercel
 export default async function handler(req, res) {
   try {
-    const app = await initializeApp();
+    // Garantir que o banco de dados foi inicializado
+    await ensureInitialized();
     
-    // Em funções serverless, precisamos gerenciar as requisições manualmente
-    // em vez de simplesmente passar para o Express
-    return new Promise((resolve, reject) => {
-      app(req, res, (err) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve();
-      });
-    });
+    // Processar a rota
+    await handleRoute(req, res);
   } catch (error) {
     console.error('Erro na função serverless:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
+    setCorsHeaders(res);
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ error: 'Erro interno do servidor' }));
   }
 }

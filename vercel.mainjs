@@ -1,0 +1,28 @@
+// Ponto de entrada para build no Vercel
+// Este arquivo evita o uso de import.meta.dirname que pode causar problemas no Vercel
+
+// Configurações para o Vercel
+export default {
+  // Instruções para o build no Vercel
+  buildCommand: "chmod +x vercel-build.sh && ./vercel-build.sh",
+  
+  // Tipo de projeto
+  framework: null,
+  
+  // Diretório de saída
+  outputDirectory: "dist",
+  
+  // Configurações para as funções serverless
+  functions: {
+    "api/server.js": {
+      memory: 1024,
+      maxDuration: 30
+    }
+  },
+  
+  // Configurações de rotas
+  routes: [
+    { src: "/api/(.*)", dest: "/api/server" },
+    { src: "/(.*)", dest: "/index.html" }
+  ]
+}
