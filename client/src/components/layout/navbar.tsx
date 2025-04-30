@@ -6,11 +6,20 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Bell, Menu } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Bell, LogOut, Menu, Settings, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Navbar() {
   const [location] = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   const navItems = [
     { title: "Agenda", href: "/agenda" },
@@ -25,6 +34,20 @@ export default function Navbar() {
       return true;
     }
     return location === path;
+  };
+
+  // Obter as iniciais do nome do usuário para exibir no avatar
+  const getUserInitials = () => {
+    if (!user || !user.name) return '?';
+    
+    const nameParts = user.name.split(' ');
+    if (nameParts.length === 1) return nameParts[0].charAt(0).toUpperCase();
+    
+    return (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase();
+  };
+
+  const handleLogout = async () => {
+    await signOut();
   };
 
   return (
@@ -64,14 +87,44 @@ export default function Navbar() {
 
             {/* Profile dropdown */}
             <div className="ml-3 relative">
-              <div>
-                <Button variant="ghost" className="flex items-center gap-2 text-sm">
-                  <span className="hidden md:block">Fernanda Silva</span>
-                  <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white">
-                    FS
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 text-sm">
+                    <span className="hidden md:block">{user?.name || user?.email}</span>
+                    <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white">
+                      {getUserInitials()}
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <div className="px-4 py-2">
+                    <p className="text-sm font-medium">{user?.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                   </div>
-                </Button>
-              </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/perfil">
+                      <a className="flex cursor-pointer items-center">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Meu Perfil</span>
+                      </a>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/configuracoes">
+                      <a className="flex cursor-pointer items-center">
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Configurações</span>
+                      </a>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sair</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
           <div className="-mr-2 flex items-center sm:hidden">
@@ -110,12 +163,41 @@ export default function Navbar() {
                   <div className="pt-4 mt-4 border-t border-gray-200">
                     <div className="flex items-center">
                       <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white">
-                        FS
+                        {getUserInitials()}
                       </div>
                       <div className="ml-3">
-                        <div className="text-base font-medium text-gray-800">Fernanda Silva</div>
-                        <div className="text-sm font-medium text-gray-500">fernanda@dellas.com</div>
+                        <div className="text-base font-medium text-gray-800">{user?.name}</div>
+                        <div className="text-sm font-medium text-gray-500">{user?.email}</div>
                       </div>
+                    </div>
+                    
+                    <div className="mt-4 flex flex-col space-y-2">
+                      <Link href="/perfil">
+                        <a className="flex items-center px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:bg-gray-100"
+                           onClick={() => setIsMenuOpen(false)}>
+                          <User className="mr-3 h-5 w-5 text-gray-500" />
+                          Meu Perfil
+                        </a>
+                      </Link>
+                      
+                      <Link href="/configuracoes">
+                        <a className="flex items-center px-3 py-2 text-base font-medium text-gray-700 rounded-md hover:bg-gray-100"
+                           onClick={() => setIsMenuOpen(false)}>
+                          <Settings className="mr-3 h-5 w-5 text-gray-500" />
+                          Configurações
+                        </a>
+                      </Link>
+                      
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setIsMenuOpen(false);
+                        }}
+                        className="flex items-center px-3 py-2 text-base font-medium text-destructive rounded-md hover:bg-gray-100 w-full text-left"
+                      >
+                        <LogOut className="mr-3 h-5 w-5 text-destructive" />
+                        Sair
+                      </button>
                     </div>
                   </div>
                 </div>

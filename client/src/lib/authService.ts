@@ -1,4 +1,4 @@
-import { supabase } from '@shared/supabase';
+import { supabase } from './supabase-browser';
 
 export type SignInCredentials = {
   email: string;
