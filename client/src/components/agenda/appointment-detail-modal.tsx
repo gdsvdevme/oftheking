@@ -129,8 +129,20 @@ export default function AppointmentDetailModal({
                 <User />
               </div>
               <div className="ml-3">
-                <p className="font-medium">{appointment.client?.name}</p>
-                <p className="text-xs text-gray-500">{appointment.client?.phone}</p>
+                <p className="font-medium">
+                  {appointment.client ? 
+                    (typeof appointment.client === 'object' && appointment.client.name ? 
+                      appointment.client.name : 
+                      (appointment.client_name || "Cliente")) : 
+                    "Cliente"}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {appointment.client ? 
+                    (typeof appointment.client === 'object' && appointment.client.phone ? 
+                      appointment.client.phone : 
+                      (appointment.client_phone || "")) : 
+                    ""}
+                </p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
@@ -153,12 +165,22 @@ export default function AppointmentDetailModal({
               {appointment.services && appointment.services.length > 0 ? (
                 appointment.services.map((service, index) => (
                   <div key={index} className="flex justify-between items-center text-sm border-b pb-2">
-                    <span>{service.name}</span>
                     <span>
-                      R$ {typeof service.price === 'number' 
-                        ? service.price.toFixed(2).replace('.', ',')
-                        : service.price
-                      }
+                      {service.services?.name ? service.services.name : 
+                       (service.name ? service.name : 'Serviço')}
+                    </span>
+                    <span>
+                      R$ {(() => {
+                        // Obter o preço do objeto aninhado, se existir
+                        const price = service.services?.price !== undefined 
+                          ? service.services.price 
+                          : (service.price !== undefined ? service.price : 0);
+                        
+                        // Formatar preço
+                        return typeof price === 'number' 
+                          ? price.toFixed(2).replace('.', ',')
+                          : (parseFloat(price) || 0).toFixed(2).replace('.', ',');
+                      })()}
                     </span>
                   </div>
                 ))
@@ -168,10 +190,15 @@ export default function AppointmentDetailModal({
               <div className="flex justify-between items-center font-medium pt-1">
                 <span>Total</span>
                 <span>
-                  R$ {typeof appointment.final_price === 'number' 
-                    ? appointment.final_price.toFixed(2).replace('.', ',')
-                    : appointment.final_price
-                  }
+                  R$ {(() => {
+                    // Obter e validar o preço
+                    const price = appointment.final_price !== undefined ? appointment.final_price : 0;
+                    
+                    // Formatar preço
+                    return typeof price === 'number' 
+                      ? price.toFixed(2).replace('.', ',')
+                      : (parseFloat(price) || 0).toFixed(2).replace('.', ',');
+                  })()}
                 </span>
               </div>
             </div>
