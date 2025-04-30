@@ -54,32 +54,90 @@ export default function SupabasePage() {
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6">Dados do Supabase</h1>
       
-      <div className="mb-6">
-        <Button 
-          onClick={handleSync}
-          disabled={syncQuery.isPending}
-          className="w-full sm:w-auto"
-        >
-          {syncQuery.isPending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Sincronizando...
-            </>
-          ) : "Sincronizar com Supabase"}
-        </Button>
-        
-        {syncQuery.isSuccess && (
-          <div className="mt-2 p-3 bg-green-50 text-green-700 rounded-md">
-            Sincronização concluída com sucesso!
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Sincronização com Supabase</CardTitle>
+          <CardDescription>
+            Sincronize dados entre seu banco de dados local e o Supabase para garantir a consistência.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-4">
+            <Button 
+              onClick={handleSync}
+              disabled={syncQuery.isPending}
+              className="w-full sm:w-auto"
+            >
+              {syncQuery.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sincronizando...
+                </>
+              ) : "Sincronizar com Supabase"}
+            </Button>
+            
+            {syncQuery.isSuccess && (
+              <div className="p-4 bg-green-50 text-green-700 rounded-md border border-green-200">
+                <h3 className="text-lg font-medium text-green-800 mb-2">Sincronização concluída!</h3>
+                <p className="text-sm mb-2">Timestamp: {syncQuery.data.timestamp}</p>
+                
+                {syncQuery.data.results?.operations && syncQuery.data.results.operations.length > 0 && (
+                  <div className="mt-2">
+                    <h4 className="font-medium mb-1 text-green-800">Operações realizadas:</h4>
+                    <ul className="list-disc pl-5 text-sm space-y-1">
+                      {syncQuery.data.results.operations.map((op, index) => (
+                        <li key={index}>{op}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {syncQuery.data.results?.profiles && (
+                  <div className="mt-2 p-2 bg-white/50 rounded border border-green-200">
+                    <p className="font-medium">
+                      Perfis: {syncQuery.data.results.profiles.success ? (
+                        <span className="text-green-600">
+                          {syncQuery.data.results.profiles.count} encontrados
+                        </span>
+                      ) : (
+                        <span className="text-red-600">
+                          Falha: {syncQuery.data.results.profiles.message}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                )}
+                
+                {syncQuery.data.results?.users && (
+                  <div className="mt-2 p-2 bg-white/50 rounded border border-green-200">
+                    <p className="font-medium">
+                      Usuários: {syncQuery.data.results.users.success ? (
+                        <span className="text-green-600">
+                          {syncQuery.data.results.users.count} encontrados
+                        </span>
+                      ) : (
+                        <span className="text-red-600">
+                          Falha: {syncQuery.data.results.users.message}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {syncQuery.isError && (
+              <div className="p-4 bg-red-50 text-red-700 rounded-md border border-red-200">
+                <h3 className="text-lg font-medium text-red-800 mb-2">Erro na sincronização</h3>
+                <p className="text-sm">Mensagem: {syncQuery.error.message}</p>
+                {syncQuery.error.cause && (
+                  <p className="text-sm mt-1">Causa: {String(syncQuery.error.cause)}</p>
+                )}
+              </div>
+            )}
           </div>
-        )}
-        
-        {syncQuery.isError && (
-          <div className="mt-2 p-3 bg-red-50 text-red-700 rounded-md">
-            Erro ao sincronizar: {syncQuery.error.message}
-          </div>
-        )}
-      </div>
+        </CardContent>
+      </Card>
       
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList className="mb-6">
@@ -104,31 +162,37 @@ export default function SupabasePage() {
                 <div className="p-3 bg-red-50 text-red-700 rounded-md">
                   Erro ao carregar perfis: {profilesQuery.error.message}
                 </div>
-              ) : profilesQuery.data?.length === 0 ? (
+              ) : !profilesQuery.data?.profiles || profilesQuery.data.profiles.length === 0 ? (
                 <div className="text-center py-6 text-muted-foreground">
                   Nenhum perfil encontrado no Supabase.
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Usuário ID</TableHead>
-                      <TableHead>Atualizado em</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {profilesQuery.data?.map((profile: any) => (
-                      <TableRow key={profile.id}>
-                        <TableCell className="font-mono text-xs">{profile.id}</TableCell>
-                        <TableCell>{profile.name || "-"}</TableCell>
-                        <TableCell className="font-mono text-xs">{profile.user_id}</TableCell>
-                        <TableCell>{new Date(profile.updated_at).toLocaleString()}</TableCell>
+                <>
+                  <div className="bg-blue-50 p-3 rounded-md text-blue-800 mb-4">
+                    <p className="font-medium">Total: {profilesQuery.data.count} perfis encontrados</p>
+                  </div>
+                  
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Atualizado em</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {profilesQuery.data.profiles.map((profile: any) => (
+                        <TableRow key={profile.id}>
+                          <TableCell className="font-mono text-xs">{profile.id}</TableCell>
+                          <TableCell>{profile.name || "-"}</TableCell>
+                          <TableCell>{profile.email || "-"}</TableCell>
+                          <TableCell>{profile.updated_at ? new Date(profile.updated_at).toLocaleString() : "-"}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </>
               )}
             </CardContent>
           </Card>
@@ -151,31 +215,53 @@ export default function SupabasePage() {
                 <div className="p-3 bg-red-50 text-red-700 rounded-md">
                   Erro ao carregar usuários: {usersQuery.error.message}
                 </div>
-              ) : usersQuery.data?.length === 0 ? (
+              ) : !usersQuery.data?.users || usersQuery.data.users.length === 0 ? (
                 <div className="text-center py-6 text-muted-foreground">
                   Nenhum usuário encontrado no Supabase.
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Confirmado</TableHead>
-                      <TableHead>Criado em</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {usersQuery.data?.map((user: any) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-mono text-xs">{user.id}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>{user.email_confirmed_at ? "Sim" : "Não"}</TableCell>
-                        <TableCell>{new Date(user.created_at).toLocaleString()}</TableCell>
+                <>
+                  <div className="bg-blue-50 p-3 rounded-md text-blue-800 mb-4">
+                    <p className="font-medium">Total: {usersQuery.data.count} usuários encontrados</p>
+                  </div>
+                  
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Último login</TableHead>
+                        <TableHead>Criado em</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {usersQuery.data.users.map((user: any) => (
+                        <TableRow key={user.id}>
+                          <TableCell className="font-mono text-xs">{user.id}</TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>
+                            {user.banned_until ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Banido
+                              </span>
+                            ) : user.confirmed_at ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Confirmado
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                Pendente
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell>{user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : "Nunca"}</TableCell>
+                          <TableCell>{new Date(user.created_at).toLocaleString()}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </>
               )}
             </CardContent>
           </Card>
