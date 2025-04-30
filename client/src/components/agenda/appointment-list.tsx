@@ -97,13 +97,36 @@ export default function AppointmentList({
     }
   };
 
+  // Função para verificar e debugar a estrutura dos agendamentos
+  const logAppointmentData = (appointment: any) => {
+    console.log('Appointment structure:', JSON.stringify({
+      id: appointment.id,
+      client: appointment.client,
+      client_name: appointment.client?.name,
+      start_time: appointment.start_time,
+      services: appointment.services,
+      has_services: !!appointment.services && Array.isArray(appointment.services)
+    }, null, 2));
+  };
+
+  // Se os agendamentos existirem, logue o primeiro para debug
+  if (appointments.length > 0) {
+    console.log('Total appointments:', appointments.length);
+    logAppointmentData(appointments[0]);
+  }
+
   // Filtrar os agendamentos com base nos filtros selecionados
   const filteredAppointments = appointments.filter(appointment => {
     const appointmentDate = parseDateSafely(appointment.start_time);
+    
+    // Verificamos se client existe e tem propriedade name
+    const clientName = appointment.client?.name || "";
+    const clientPhone = appointment.client?.phone || "";
+    
     const matchesSearch = 
       !searchQuery || 
-      (appointment.client?.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (appointment.client?.phone || "").includes(searchQuery);
+      clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      clientPhone.includes(searchQuery);
     
     // Aplicar filtro de período
     let matchesPeriod = true;
@@ -149,12 +172,24 @@ export default function AppointmentList({
   };
 
   // Renderizar os serviços do agendamento
-  const renderServices = (services?: { name: string; price: number }[]) => {
+  const renderServices = (services?: any[]) => {
     if (!services || services.length === 0) {
       return <span className="text-gray-500">Sem serviços</span>;
     }
     
-    return services.map(service => service.name).join(", ");
+    // Baseado nos logs, parece que cada serviço tem uma propriedade 'services' que contém o objeto de serviço real
+    return services.map(service => {
+      // Se o item tiver um objeto services aninhado com name, use-o
+      if (service.services && service.services.name) {
+        return service.services.name;
+      }
+      // Se o item for um objeto com name diretamente, use-o
+      else if (service.name) {
+        return service.name;
+      }
+      // Fallback
+      return "Serviço";
+    }).join(", ");
   };
 
   return (
@@ -247,7 +282,7 @@ export default function AppointmentList({
                     {renderStatus(appointment.status, appointment.payment_status)}
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    R$ {appointment.final_price.toFixed(2).replace('.', ',')}
+                    R$ {(parseFloat(appointment.final_price?.toString() || "0") || 0).toFixed(2).replace('.', ',')}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
