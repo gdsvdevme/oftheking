@@ -200,6 +200,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { service_ids, ...appointmentData } = req.body;
       
+      // Converter strings ISO para objetos Date
+      if (typeof appointmentData.start_time === 'string') {
+        appointmentData.start_time = new Date(appointmentData.start_time);
+      }
+      
+      if (typeof appointmentData.end_time === 'string') {
+        appointmentData.end_time = new Date(appointmentData.end_time);
+      }
+      
       // Validate main appointment data
       const validatedAppointment = insertAppointmentSchema.parse(appointmentData);
       
@@ -211,29 +220,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      console.log('Criando agendamento:', validatedAppointment, service_ids);
       const appointment = await storage.createAppointment(validatedAppointment, service_ids);
       res.status(201).json(appointment);
     } catch (error) {
+      console.error('Erro ao criar agendamento:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       }
-      res.status(500).json({ message: "Erro ao criar agendamento" });
+      res.status(500).json({ 
+        message: "Erro ao criar agendamento", 
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 
   app.put("/api/appointments/:id", async (req, res) => {
     try {
-      const validatedData = insertAppointmentSchema.partial().parse(req.body);
+      const appointmentData = req.body;
+      
+      // Converter strings ISO para objetos Date
+      if (typeof appointmentData.start_time === 'string') {
+        appointmentData.start_time = new Date(appointmentData.start_time);
+      }
+      
+      if (typeof appointmentData.end_time === 'string') {
+        appointmentData.end_time = new Date(appointmentData.end_time);
+      }
+      
+      const validatedData = insertAppointmentSchema.partial().parse(appointmentData);
       const appointment = await storage.updateAppointment(req.params.id, validatedData);
       if (!appointment) {
         return res.status(404).json({ message: "Agendamento não encontrado" });
       }
       res.json(appointment);
     } catch (error) {
+      console.error('Erro ao atualizar agendamento:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       }
-      res.status(500).json({ message: "Erro ao atualizar agendamento" });
+      res.status(500).json({ 
+        message: "Erro ao atualizar agendamento",
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 
@@ -264,14 +293,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/blocked-schedules", async (req, res) => {
     try {
-      const validatedData = insertBlockedScheduleSchema.parse(req.body);
+      const scheduleData = req.body;
+      
+      // Converter strings ISO para objetos Date
+      if (typeof scheduleData.start_time === 'string') {
+        scheduleData.start_time = new Date(scheduleData.start_time);
+      }
+      
+      if (typeof scheduleData.end_time === 'string') {
+        scheduleData.end_time = new Date(scheduleData.end_time);
+      }
+      
+      const validatedData = insertBlockedScheduleSchema.parse(scheduleData);
       const blockedSchedule = await storage.createBlockedSchedule(validatedData);
       res.status(201).json(blockedSchedule);
     } catch (error) {
+      console.error('Erro ao bloquear horário:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       }
-      res.status(500).json({ message: "Erro ao bloquear horário" });
+      res.status(500).json({ 
+        message: "Erro ao bloquear horário",
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 
