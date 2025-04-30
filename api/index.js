@@ -1,6 +1,11 @@
 // Edge API para Vercel - mais leve e compatível com o modelo serverless
-import { storage } from '../server/storage.js';
-import { initializeDatabase } from '../server/initData.js';
+import { storage } from './edge-storage.js';
+
+// Função simplificada para simular inicialização
+async function initializeDatabase() {
+  console.log('Simulando inicialização do banco de dados para Edge Function');
+  return true;
+}
 
 // Variável para rastrear inicialização
 let isInitialized = false;

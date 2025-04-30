@@ -52,7 +52,7 @@ Sistema de gerenciamento para salão de beleza Dellas - Cabelo & Pele, otimizado
    - O backend é implementado como Edge Functions, que oferecem melhor desempenho e compatibilidade
 
 ### Estrutura de Arquivos para Deploy
-- `vercel.json`: Configura como o projeto deve ser construído e implantado
+- `vercel.json`: Configura como o projeto deve ser construído e implantado (com rewrites apropriados)
 - `api/index.js`: Implementa a Edge Function para API com alta performance
 - `vercel-build.sh`: Script personalizado para construir a aplicação
 
