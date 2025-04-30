@@ -1,0 +1,128 @@
+Appointment structure: {
+  "id": "16932a76-9476-43c1-b7d0-eef3c0ffa9ba",
+  "client": {
+    "id": "82f31fa0-a08e-4890-84a8-6bcefb8cb3be",
+    "name": "Diene",
+    "phone": "64992822570",
+    "created_at": "2025-02-28T03:58:12.539478+00:00",
+    "created_by": "c4ffc979-a094-4111-a542-328fb1c1154b"
+  },
+  "client_name": "Diene",
+  "start_time": "2025-02-22T07:00:00+00:00",
+  "services": [
+    {
+      "id": "d7ea42bb-2f43-44a2-b6d2-1671afd77299",
+      "appointment_id": "16932a76-9476-43c1-b7d0-eef3c0ffa9ba",
+      "service_id": "5b29b5ac-0f93-409a-98a6-562349385140",
+      "price": 0,
+      "final_price": 0,
+      "services": {
+        "id": "5b29b5ac-0f93-409a-98a6-562349385140",
+        "name": "Maquiagem",
+        "price": 0,
+        "duration": 60,
+        "created_at": "2025-02-28T03:25:00.879543+00:00",
+        "created_by": "c4ffc979-a094-4111-a542-328fb1c1154b"
+      }
+    },
+    {
+      "id": "af239b9f-e7ce-4edf-9d8e-905092ef602a",
+      "appointment_id": "16932a76-9476-43c1-b7d0-eef3c0ffa9ba",
+      "service_id": "e1d3ce93-4ec9-4d10-b805-e74969dd4e3a",
+      "price": 0,
+      "final_price": 0,
+      "services": {
+        "id": "e1d3ce93-4ec9-4d10-b805-e74969dd4e3a",
+        "name": "Penteado",
+        "price": 0,
+        "duration": 60,
+        "created_at": "2025-02-28T04:00:28.301402+00:00",
+        "created_by": "c4ffc979-a094-4111-a542-328fb1c1154b"
+      }
+    }
+  ],
+  "has_services": true
+}
+Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+The above error occurred in the <div> component:
+
+    at div
+    at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DVHSTOKX.js?v=ba200c43:42:13
+    at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-GR3B7I3S.js?v=ba200c43:79:13
+    at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-GR3B7I3S.js?v=ba200c43:56:13
+    at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-6YNPD2E6.js?v=ba200c43:611:20
+    at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IPSQPWT3.js?v=ba200c43:125:13
+    at Presence (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-75LFS2LN.js?v=ba200c43:24:11)
+    at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IPSQPWT3.js?v=ba200c43:115:64
+    at _c (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/components/ui/dialog.tsx:27:11)
+    at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-GR3B7I3S.js?v=ba200c43:79:13
+    at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-GR3B7I3S.js?v=ba200c43:56:13
+    at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DVHSTOKX.js?v=ba200c43:42:13
+    at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-3MDRJWLS.js?v=ba200c43:258:22
+    at Presence (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-75LFS2LN.js?v=ba200c43:24:11)
+    at Provider (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-72DEVCPZ.js?v=ba200c43:48:15)
+    at DialogPortal (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IPSQPWT3.js?v=ba200c43:107:11)
+    at _c3 (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/components/ui/dialog.tsx:52:12)
+    at Provider (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-72DEVCPZ.js?v=ba200c43:48:15)
+    at Dialog (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IPSQPWT3.js?v=ba200c43:48:5)
+    at NewAppointmentModal (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/components/agenda/new-appointment-modal.tsx?t=1746017827477:63:3)
+    at div
+    at Agenda (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/pages/agenda.tsx?t=1746017827477:38:43)
+    at div
+    at div
+    at ProtectedRoute (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/components/auth/protected-route.tsx:21:34)
+    at ProtectedLayout (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/App.tsx?t=1746017827477&v=3hwit9svh4n2kr0LXAxRt:33:28)
+    at Route (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ba200c43:338:16)
+    at Switch (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ba200c43:394:17)
+    at Router
+    at AuthProvider (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/hooks/useAuth.tsx:22:32)
+    at Provider (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-72DEVCPZ.js?v=ba200c43:48:15)
+    at TooltipProvider (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=ba200c43:59:5)
+    at QueryClientProvider (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ba200c43:2869:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit…
+
+at div
+at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DVHSTOKX.js?v=ba200c43:42:13
+at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-GR3B7I3S.js?v=ba200c43:79:13
+at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-GR3B7I3S.js?v=ba200c43:56:13
+at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-6YNPD2E6.js?v=ba200c43:611:20
+at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IPSQPWT3.js?v=ba200c43:125:13
+at Presence (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-75LFS2LN.js?v=ba200c43:24:11)
+at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IPSQPWT3.js?v=ba200c43:115:64
+at _c (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/components/ui/dialog.tsx:27:11)
+at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-GR3B7I3S.js?v=ba200c43:79:13
+at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-GR3B7I3S.js?v=ba200c43:56:13
+at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DVHSTOKX.js?v=ba200c43:42:13
+at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-3MDRJWLS.js?v=ba200c43:258:22
+at Presence (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-75LFS2LN.js?v=ba200c43:24:11)
+at Provider (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-72DEVCPZ.js?v=ba200c43:48:15)
+at DialogPortal (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IPSQPWT3.js?v=ba200c43:107:11)
+at _c3 (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/components/ui/dialog.tsx:52:12)
+at Provider (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-72DEVCPZ.js?v=ba200c43:48:15)
+at Dialog (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IPSQPWT3.js?v=ba200c43:48:5)
+at NewAppointmentModal (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/components/agenda/new-appointment-modal.tsx?t=1746017827477:63:3)
+at div
+at Agenda (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/pages/agenda.tsx?t=1746017827477:38:43)
+at div
+at div
+at ProtectedRoute (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/components/auth/protected-route.tsx:21:34)
+at ProtectedLayout (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/App.tsx?t=1746017827477&amp;v=3hwit9svh4n2kr0LXAxRt:33:28)
+at Route (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ba200c43:338:16)
+at Switch (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ba200c43:394:17)
+at Router
+at AuthProvider (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/hooks/useAuth.tsx:22:32)
+at Provider (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-72DEVCPZ.js?v=ba200c43:48:15)
+at TooltipProvider (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=ba200c43:59:5)
+at QueryClientProvider (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ba200c43:2869:3)
+at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit…
+at t.value (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400

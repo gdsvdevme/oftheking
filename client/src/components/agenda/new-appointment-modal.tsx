@@ -101,19 +101,21 @@ export default function NewAppointmentModal({
 
   // Update total price and duration when selected services change
   useEffect(() => {
-    const selectedServiceDetails = services
-      .filter(service => selectedServices.includes(service.id))
-      .reduce(
+    if (services && selectedServices) {
+      const filteredServices = services.filter(service => selectedServices.includes(service.id));
+      const selectedServiceDetails = filteredServices.reduce(
         (acc, service) => ({
           totalPrice: acc.totalPrice + (service.price || 0),
           totalDuration: acc.totalDuration + (service.duration || 0),
         }),
         { totalPrice: 0, totalDuration: 0 }
       );
-    
-    setServiceDetails(selectedServiceDetails);
-    form.setValue("service_ids", selectedServices);
-  }, [selectedServices, services, form]);
+      
+      setServiceDetails(selectedServiceDetails);
+      // Atualizamos o valor no formulário sem desencadear re-renderizações adicionais
+      form.setValue("service_ids", selectedServices, { shouldValidate: false });
+    }
+  }, [selectedServices, services]);
 
   const onSubmit = async (data: AppointmentFormValues) => {
     try {
@@ -271,40 +273,45 @@ export default function NewAppointmentModal({
                   />
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="service_ids"
-                  render={() => (
-                    <FormItem className="mt-4">
-                      <FormLabel>Serviços</FormLabel>
-                      <div className="max-h-48 overflow-y-auto border rounded-md bg-gray-50 p-2">
-                        {services.map(service => (
-                          <div 
-                            key={service.id}
-                            className="flex items-center justify-between p-2 hover:bg-white rounded-md mb-1 border border-transparent hover:border-gray-200 cursor-pointer"
-                            onClick={(e) => handleServiceToggle(service.id, e)}
-                          >
-                            <div className="flex items-center">
-                              <Checkbox 
-                                checked={selectedServices.includes(service.id)}
-                                onCheckedChange={(checked, e) => handleServiceToggle(service.id, e?.nativeEvent)}
-                                className="h-4 w-4 text-primary"
-                              />
-                              <label className="ml-2 block text-sm text-gray-900">{service.name}</label>
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              R$ {typeof service.price === 'number' 
-                                ? service.price.toFixed(2).replace('.', ',')
-                                : service.price
-                              } - {service.duration} min
-                            </div>
-                          </div>
-                        ))}
+                <div className="mt-4">
+                  <div className="mb-2 font-medium text-sm">Serviços</div>
+                  <div className="max-h-48 overflow-y-auto border rounded-md bg-gray-50 p-2">
+                    {Array.isArray(services) && services.map(service => (
+                      <div 
+                        key={service.id}
+                        className="flex items-center justify-between p-2 hover:bg-white rounded-md mb-1 border border-transparent hover:border-gray-200 cursor-pointer"
+                        onClick={() => {
+                          // Função simplificada que apenas alterna o serviço
+                          const newSelectedServices = selectedServices.includes(service.id)
+                            ? selectedServices.filter(id => id !== service.id)
+                            : [...selectedServices, service.id];
+                          
+                          setSelectedServices(newSelectedServices);
+                          form.setValue("service_ids", newSelectedServices, { shouldValidate: false });
+                        }}
+                      >
+                        <div className="flex items-center">
+                          <input 
+                            type="checkbox" 
+                            checked={selectedServices.includes(service.id)}
+                            readOnly
+                            className="h-4 w-4 text-primary rounded border-gray-300 focus:ring-indigo-500"
+                          />
+                          <span className="ml-2 block text-sm text-gray-900">{service.name}</span>
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          R$ {typeof service.price === 'number' 
+                            ? service.price.toFixed(2).replace('.', ',')
+                            : service.price
+                          } - {service.duration} min
+                        </div>
                       </div>
-                      <FormMessage />
-                    </FormItem>
+                    ))}
+                  </div>
+                  {form.formState.errors.service_ids && (
+                    <div className="text-sm text-red-500 mt-1">Selecione pelo menos um serviço</div>
                   )}
-                />
+                </div>
               </div>
 
               {/* Right Column */}
@@ -315,7 +322,7 @@ export default function NewAppointmentModal({
                     {selectedServices.length === 0 ? (
                       <div className="text-sm text-gray-500">Nenhum serviço selecionado</div>
                     ) : (
-                      services
+                      Array.isArray(services) && services
                         .filter(service => selectedServices.includes(service.id))
                         .map(service => (
                           <div key={service.id} className="flex justify-between items-center text-sm">
