@@ -26,19 +26,17 @@ interface AppointmentCardProps {
 
 export default function AppointmentCard({ appointment }: AppointmentCardProps) {
   const startTime = new Date(appointment.start_time);
-  const endTime = new Date(appointment.end_time);
   
   const formatTime = (date: Date) => {
     return format(date, "HH:mm");
   };
 
-  const getServiceNames = () => {
-    if (appointment.services && appointment.services.length > 0) {
-      return appointment.services.map(service => service.name).join(" + ");
-    }
-    return "Sem serviços";
-  };
-
+  // Buscar o nome do cliente associado ou mostrar "Cliente"
+  const clientName = appointment.client?.name || "Cliente";
+  
+  // Buscar o telefone do cliente ou mostrar vazio
+  const clientPhone = appointment.client?.phone || "";
+  
   const getStatusBadge = () => {
     switch (appointment.payment_status) {
       case "paid":
@@ -51,13 +49,18 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
   };
 
   return (
-    <div className="flex justify-between items-start">
-      <div>
-        <p className="font-medium text-sm">{appointment.client?.name || "Cliente"}</p>
-        <p className="text-xs text-gray-600">
-          {formatTime(startTime)} - {formatTime(endTime)}
+    <div className="flex justify-between items-start cursor-pointer">
+      <div className="w-full">
+        {/* Nome do cliente em negrito */}
+        <p className="font-medium text-sm truncate">{clientName}</p>
+        
+        {/* Telefone do cliente, se disponível */}
+        {clientPhone && <p className="text-xs text-gray-700 truncate">{clientPhone}</p>}
+        
+        {/* Apenas o horário de início */}
+        <p className="text-xs text-gray-600 mt-1">
+          {formatTime(startTime)}
         </p>
-        <p className="text-xs mt-1">{getServiceNames()}</p>
       </div>
       {getStatusBadge()}
     </div>

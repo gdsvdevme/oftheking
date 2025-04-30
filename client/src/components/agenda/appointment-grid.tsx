@@ -92,16 +92,17 @@ export default function AppointmentGrid({
     const startMinutes = startTime.getMinutes();
     const minutesSince8AM = (startHour - 8) * 60 + startMinutes;
     
-    // Calculate height (duration in minutes)
-    const durationMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
+    // Simplificar altura para evitar sobreposições - cada card tem 70px de altura (30-40 minutos)
+    // Independente da duração real do appointment
     
     // Convert to pixels (assuming 1 hour = 100px)
     const topPosition = (minutesSince8AM / 60) * 100;
-    const height = (durationMinutes / 60) * 100;
     
     return {
       top: `${topPosition}px`,
-      height: `${height}px`,
+      height: '70px', // Altura fixa para todos os cards
+      maxHeight: '70px', // Limitando a altura máxima
+      overflow: 'hidden'
     };
   };
 
@@ -149,7 +150,7 @@ export default function AppointmentGrid({
               return (
                 <div 
                   key={appointment.id}
-                  className="absolute left-0 right-0 mx-2 rounded-2xl px-3 py-2 bg-secondary bg-opacity-30 border-l-4 border-primary"
+                  className="absolute left-0 right-0 mx-2 rounded-lg px-2 py-1 bg-pink-100 border-l-4 border-primary shadow-sm"
                   style={style}
                   onClick={() => onAppointmentClick(appointment.id)}
                 >
@@ -172,16 +173,16 @@ export default function AppointmentGrid({
               return (
                 <div 
                   key={block.id}
-                  className="absolute left-0 right-0 mx-2 rounded-2xl px-3 py-2 bg-gray-200 border-l-4 border-gray-400"
+                  className="absolute left-0 right-0 mx-2 rounded-lg px-2 py-1 bg-gray-200 border-l-4 border-gray-400 shadow-sm"
                   style={style}
                 >
                   <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-medium text-sm">Horário Bloqueado</p>
+                    <div className="w-full">
+                      <p className="font-medium text-sm truncate">Horário Bloqueado</p>
                       <p className="text-xs text-gray-600">
-                        {format(new Date(block.start_time), 'HH:mm')} - {format(new Date(block.end_time), 'HH:mm')}
+                        {format(new Date(block.start_time), 'HH:mm')}
                       </p>
-                      <p className="text-xs mt-1">{block.reason}</p>
+                      {block.reason && <p className="text-xs text-gray-500 truncate">{block.reason}</p>}
                     </div>
                   </div>
                 </div>
