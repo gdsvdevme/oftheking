@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   format, 
   isToday, 
@@ -148,7 +148,7 @@ export default function AppointmentList({
     if (onFiltersChange) {
       onFiltersChange(searchQuery, periodFilter, statusFilter);
     }
-  }, []);
+  }, [onFiltersChange, searchQuery, periodFilter, statusFilter]);
 
   // Renderizar o status do agendamento com cores correspondentes
   const renderStatus = (status: string, paymentStatus: string) => {
