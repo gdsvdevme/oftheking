@@ -12,6 +12,7 @@ import Financeiro from "@/pages/financeiro";
 import Estoque from "@/pages/estoque";
 import Supabase from "@/pages/supabase";
 import Login from "@/pages/login";
+import PagamentosPendentes from "@/pages/pagamentos-pendentes";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
@@ -75,6 +76,14 @@ function Router() {
         {() => (
           <ProtectedLayout>
             <Estoque />
+          </ProtectedLayout>
+        )}
+      </Route>
+      
+      <Route path="/pagamentos-pendentes">
+        {() => (
+          <ProtectedLayout>
+            <PagamentosPendentes />
           </ProtectedLayout>
         )}
       </Route>

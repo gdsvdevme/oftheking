@@ -25,6 +25,7 @@ export default function Navbar() {
     { title: "Agenda", href: "/agenda" },
     { title: "Clientes", href: "/clientes" },
     { title: "Serviços", href: "/servicos" },
+    { title: "Pagamentos", href: "/pagamentos-pendentes" },
     { title: "Financeiro", href: "/financeiro" },
     { title: "Estoque", href: "/estoque" },
     { title: "Supabase", href: "/supabase" },
