@@ -43,7 +43,6 @@ const appointmentFormSchema = z.object({
   date: z.string().min(1, { message: "Selecione uma data" }),
   time: z.string().min(1, { message: "Selecione um horário" }),
   service_ids: z.array(z.string()).min(1, { message: "Selecione pelo menos um serviço" }),
-  payment_status: z.enum(["paid", "pending"]),
   recurrence: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -76,7 +75,6 @@ export default function NewAppointmentModal({
       date: format(selectedDate, "yyyy-MM-dd"),
       time: "09:00",
       service_ids: [],
-      payment_status: "paid",
       recurrence: "none",
       notes: "",
     },
@@ -131,7 +129,6 @@ export default function NewAppointmentModal({
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
         service_ids: data.service_ids,
-        payment_status: data.payment_status,
         recurrence: data.recurrence === "none" ? null : data.recurrence,
         notes: data.notes,
         final_price: serviceDetails.totalPrice,
@@ -156,7 +153,13 @@ export default function NewAppointmentModal({
     }
   };
 
-  const handleServiceToggle = (serviceId: string) => {
+  const handleServiceToggle = (serviceId: string, e?: React.MouseEvent) => {
+    // Evitar propagação de eventos se o evento for fornecido
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    
     setSelectedServices(prev => {
       if (prev.includes(serviceId)) {
         return prev.filter(id => id !== serviceId);
@@ -279,7 +282,7 @@ export default function NewAppointmentModal({
                           <div 
                             key={service.id}
                             className="flex items-center justify-between p-2 hover:bg-white rounded-md mb-1 border border-transparent hover:border-gray-200 cursor-pointer"
-                            onClick={() => handleServiceToggle(service.id)}
+                            onClick={(e) => handleServiceToggle(service.id, e)}
                           >
                             <div className="flex items-center">
                               <Checkbox 
@@ -337,32 +340,7 @@ export default function NewAppointmentModal({
                   </div>
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="payment_status"
-                  render={({ field }) => (
-                    <FormItem className="mb-4">
-                      <FormLabel>Status do Pagamento</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="flex gap-4"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="paid" id="paid" />
-                            <Label htmlFor="paid">Pago</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="pending" id="pending" />
-                            <Label htmlFor="pending">Pendente</Label>
-                          </div>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
 
                 <FormField
                   control={form.control}
