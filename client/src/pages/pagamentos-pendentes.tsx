@@ -377,7 +377,7 @@ export default function PagamentosPendentes() {
   
   // Mutação para atualizar o status de pagamento
   const updatePaymentStatusMutation = useMutation({
-    mutationFn: async ({ id, paymentStatus, paymentMethod }: { id: string; paymentStatus: string; paymentMethod?: string }) => {
+    mutationFn: async ({ id, paymentStatus, paymentMethod, status }: { id: string; paymentStatus: string; paymentMethod?: string; status?: string }) => {
       const response = await fetch(`/api/appointments/${id}`, {
         method: 'PATCH',
         headers: {
@@ -387,6 +387,7 @@ export default function PagamentosPendentes() {
           payment_status: paymentStatus,
           payment_method: paymentMethod,
           payment_date: new Date().toISOString(),
+          status: status,
         }),
       });
       
@@ -417,7 +418,7 @@ export default function PagamentosPendentes() {
   
   // Mutação para pagamento em lote
   const bulkUpdatePaymentStatusMutation = useMutation({
-    mutationFn: async ({ ids, paymentStatus, paymentMethod }: { ids: string[]; paymentStatus: string; paymentMethod: string }) => {
+    mutationFn: async ({ ids, paymentStatus, paymentMethod, status }: { ids: string[]; paymentStatus: string; paymentMethod: string; status?: string }) => {
       // Processar cada atualização individualmente
       const promises = ids.map(id => 
         fetch(`/api/appointments/${id}`, {
@@ -429,6 +430,7 @@ export default function PagamentosPendentes() {
             payment_status: paymentStatus,
             payment_method: paymentMethod,
             payment_date: new Date().toISOString(),
+            status: status,
           }),
         }).then(response => {
           if (!response.ok) {
@@ -533,16 +535,18 @@ export default function PagamentosPendentes() {
   const handleConfirmPayment = (id: string, paymentMethod: string) => {
     updatePaymentStatusMutation.mutate({ 
       id, 
-      paymentStatus: "paid",
-      paymentMethod 
+      paymentStatus: "pago", // Usar o valor em português
+      paymentMethod,
+      status: "finalizado" // Adicionar status finalizado
     });
   };
   
   const handleBulkPayment = (ids: string[], paymentMethod: string) => {
     bulkUpdatePaymentStatusMutation.mutate({
       ids,
-      paymentStatus: "paid",
-      paymentMethod
+      paymentStatus: "pago", // Usar o valor em português
+      paymentMethod,
+      status: "finalizado" // Adicionar status finalizado
     });
   };
   
@@ -550,7 +554,8 @@ export default function PagamentosPendentes() {
     if (confirm("Tem certeza que deseja cancelar este pagamento?")) {
       updatePaymentStatusMutation.mutate({ 
         id, 
-        paymentStatus: "cancelled"
+        paymentStatus: "cancelado",
+        status: "cancelado"
       });
     }
   };
