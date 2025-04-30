@@ -11,6 +11,7 @@ import {
   users, User, InsertUser,
   profiles, Profile, InsertProfile
 } from "@shared/schema";
+import { DatabaseStorage } from "./database-storage";
 
 // Define the Storage Interface with CRUD methods
 export interface IStorage {
@@ -847,4 +848,5 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Use DatabaseStorage instead of MemStorage
+export const storage = new DatabaseStorage();
