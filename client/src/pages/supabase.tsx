@@ -8,6 +8,9 @@ import { useState } from "react";
 
 export default function SupabasePage() {
   const [selectedTab, setSelectedTab] = useState("profiles");
+  const [resetingDemoData, setResetingDemoData] = useState(false);
+  const [serviceKey, setServiceKey] = useState("");
+  const [showKeyInput, setShowKeyInput] = useState(false);
   
   // Lidar com a sincronização com o Supabase
   const syncQuery = useQuery({
@@ -78,11 +81,11 @@ export default function SupabasePage() {
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6">Dados do Supabase</h1>
       
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Sincronização com Supabase</CardTitle>
-          <CardDescription>
-            Sincronize dados entre seu banco de dados local e o Supabase para garantir a consistência.
+      <Card className="mb-6 border-orange-200 bg-orange-50">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-orange-700">Aviso: Dados de Demonstração</CardTitle>
+          <CardDescription className="text-orange-600">
+            Atualmente exibindo dados de demonstração do PostgreSQL local. Para visualizar os dados reais do Supabase, é necessário configurar a chave de serviço com permissões administrativas.
           </CardDescription>
         </CardHeader>
         <CardContent>
