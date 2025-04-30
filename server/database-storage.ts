@@ -171,15 +171,15 @@ export class DatabaseStorage implements IStorage {
           .from(appointmentServices)
           .where(eq(appointmentServices.appointment_id, appointment.id));
         
-        const services = await Promise.all(
+        const appointmentServiceDetails = await Promise.all(
           appServices.map(async (appService) => {
-            const [service] = await db
+            const [serviceDetails] = await db
               .select()
               .from(services)
               .where(eq(services.id, appService.service_id));
             
             return {
-              name: service?.name,
+              name: serviceDetails?.name,
               price: appService.price
             };
           })
@@ -188,7 +188,7 @@ export class DatabaseStorage implements IStorage {
         return {
           ...appointment,
           client,
-          services
+          services: appointmentServiceDetails
         };
       })
     );
@@ -382,8 +382,8 @@ export class DatabaseStorage implements IStorage {
         sale_id: newSale.id,
         inventory_id: item.inventoryId,
         quantity: item.quantity,
-        unit_price: item.unitPrice,
-        total_price: item.quantity * item.unitPrice
+        unit_price: String(item.unitPrice),
+        total_price: String(item.quantity * item.unitPrice)
       });
       
       // Update inventory quantity

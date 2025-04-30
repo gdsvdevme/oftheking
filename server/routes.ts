@@ -155,7 +155,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const appointments = await storage.getUpcomingAppointments(limit);
       res.json(appointments);
     } catch (error) {
-      res.status(500).json({ message: "Erro ao buscar agendamentos próximos" });
+      console.error("Erro detalhado ao buscar agendamentos próximos:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar agendamentos próximos",
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 
