@@ -174,7 +174,8 @@ export default function NewAppointmentModal({ open, onClose }: NewAppointmentMod
       recurrence: recurrence === "none" ? null : recurrence,
       notes: notes,
       final_price: totalPrice.toString(),
-      status: "confirmado"
+      status: "scheduled",
+      payment_status: "pending"
     };
     
     // Enviar

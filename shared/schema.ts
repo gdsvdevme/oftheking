@@ -51,7 +51,7 @@ export const appointments = pgTable("appointments", {
   final_price: numeric("final_price").default("0"),
   recurrence: text("recurrence"),
   payment_date: timestamp("payment_date"),
-  payment_status: text("payment_status").default("paid").notNull()
+  payment_status: text("payment_status").default("pending").notNull()
 });
 
 export const insertAppointmentSchema = createInsertSchema(appointments, {
