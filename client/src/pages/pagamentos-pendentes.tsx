@@ -71,11 +71,16 @@ function PaymentModal({
     onConfirmPayment(appointment.id, paymentMethod);
   };
   
-  // Calcular valor total
+  // Calcular valor total utilizando o final_price
   const totalValue = appointment.services?.reduce((total: number, service: any) => {
-    const price = typeof service.services?.price === 'number' 
-      ? service.services.price 
-      : parseFloat(service.services?.price || '0');
+    // Usar final_price se disponível, caso contrário usar o price
+    const price = typeof service.final_price !== 'undefined' && service.final_price !== null
+      ? (typeof service.final_price === 'number' 
+        ? service.final_price 
+        : parseFloat(service.final_price || '0'))
+      : (typeof service.services?.price === 'number' 
+        ? service.services.price 
+        : parseFloat(service.services?.price || '0'));
     return total + price;
   }, 0) || 0;
   
@@ -394,11 +399,16 @@ export default function PagamentosPendentes() {
                         ? format(startTime, "dd/MM/yyyy • HH:mm", { locale: ptBR }) 
                         : 'Data não definida';
                       
-                      // Calcular valor total
+                      // Calcular valor total utilizando o final_price
                       const totalValue = appointment.services?.reduce((total: number, service: any) => {
-                        const price = typeof service.services?.price === 'number' 
-                          ? service.services.price 
-                          : parseFloat(service.services?.price || '0');
+                        // Usar final_price se disponível, caso contrário usar o price
+                        const price = typeof service.final_price !== 'undefined' && service.final_price !== null
+                          ? (typeof service.final_price === 'number' 
+                            ? service.final_price 
+                            : parseFloat(service.final_price || '0'))
+                          : (typeof service.services?.price === 'number' 
+                            ? service.services.price 
+                            : parseFloat(service.services?.price || '0'));
                         return total + price;
                       }, 0) || 0;
                       
