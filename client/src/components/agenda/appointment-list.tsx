@@ -266,8 +266,20 @@ export default function AppointmentList({
               filteredAppointments.map((appointment) => (
                 <TableRow key={appointment.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => onAppointmentClick(appointment.id)}>
                   <TableCell>
-                    <div className="font-medium">{appointment.client?.name || "Cliente"}</div>
-                    <div className="text-xs text-gray-500">{appointment.client?.phone}</div>
+                    <div className="font-medium">
+                      {appointment.client ? 
+                        (typeof appointment.client === 'object' && appointment.client.name ? 
+                          appointment.client.name : 
+                          (appointment.client_name || "Cliente")) : 
+                        "Cliente"}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {appointment.client ? 
+                        (typeof appointment.client === 'object' && appointment.client.phone ? 
+                          appointment.client.phone : 
+                          (appointment.client_phone || "")) : 
+                        ""}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center">
