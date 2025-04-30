@@ -54,7 +54,10 @@ export const appointments = pgTable("appointments", {
   payment_status: text("payment_status").default("paid").notNull()
 });
 
-export const insertAppointmentSchema = createInsertSchema(appointments).pick({
+export const insertAppointmentSchema = createInsertSchema(appointments, {
+  start_time: z.coerce.date(), // Aceita string e converte para Date
+  end_time: z.coerce.date()    // Aceita string e converte para Date
+}).pick({
   client_id: true,
   start_time: true,
   end_time: true,
@@ -96,7 +99,10 @@ export const blockedSchedules = pgTable("blocked_schedules", {
   created_at: timestamp("created_at").defaultNow()
 });
 
-export const insertBlockedScheduleSchema = createInsertSchema(blockedSchedules).pick({
+export const insertBlockedScheduleSchema = createInsertSchema(blockedSchedules, {
+  start_time: z.coerce.date(), // Aceita string e converte para Date
+  end_time: z.coerce.date()    // Aceita string e converte para Date
+}).pick({
   start_time: true,
   end_time: true,
   reason: true
@@ -140,7 +146,9 @@ export const sales = pgTable("sales", {
   client_id: uuid("client_id").references(() => clients.id)
 });
 
-export const insertSaleSchema = createInsertSchema(sales).pick({
+export const insertSaleSchema = createInsertSchema(sales, {
+  sale_date: z.coerce.date() // Aceita string e converte para Date
+}).pick({
   sale_date: true,
   total_amount: true,
   payment_method: true,
@@ -188,7 +196,9 @@ export const financialTransactions = pgTable("financial_transactions", {
   created_by: uuid("created_by")
 });
 
-export const insertFinancialTransactionSchema = createInsertSchema(financialTransactions).pick({
+export const insertFinancialTransactionSchema = createInsertSchema(financialTransactions, {
+  transaction_date: z.coerce.date() // Aceita string e converte para Date
+}).pick({
   transaction_date: true,
   description: true,
   amount: true,
