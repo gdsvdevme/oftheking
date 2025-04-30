@@ -58,24 +58,24 @@ export default function Navbar() {
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
               <Link href="/">
-                <a className="flex items-center">
+                <div className="flex items-center">
                   <h1 className="text-primary font-poppins font-bold text-2xl">Dellas</h1>
                   <span className="text-dark text-sm ml-2">Cabelo & Pele</span>
-                </a>
+                </div>
               </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {navItems.map((item) => (
                 <Link key={item.href} href={item.href}>
-                  <a 
+                  <div 
                     className={`${
                       isActive(item.href)
                         ? "border-primary text-dark"
                         : "border-transparent text-gray-500 hover:border-secondary hover:text-gray-700"
-                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium cursor-pointer`}
                   >
                     {item.title}
-                  </a>
+                  </div>
                 </Link>
               ))}
             </div>
@@ -105,10 +105,10 @@ export default function Navbar() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link href="/perfil">
-                      <a className="flex cursor-pointer items-center">
+                      <div className="flex cursor-pointer items-center">
                         <User className="mr-2 h-4 w-4" />
                         <span>Meu Perfil</span>
-                      </a>
+                      </div>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
