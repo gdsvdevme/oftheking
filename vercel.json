@@ -35,9 +35,6 @@
     }
   ],
   "env": {
-    "DATABASE_URL": "@database_url",
-    "SUPABASE_URL": "@supabase_url",
-    "SUPABASE_KEY": "@supabase_key",
     "NODE_ENV": "production"
   }
 }
