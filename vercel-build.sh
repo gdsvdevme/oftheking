@@ -1,21 +1,20 @@
 #!/bin/bash
 
-# Executar o build normal através do npm
-npm run build
+# Usar script de build original do package.json (vite build + esbuild server/index.ts)
+vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
 
-# Criar pasta para a função serverless
+# Criar pasta para a função serverless API
 mkdir -p dist/api
 
 # Compilar o arquivo de API para Edge Function com esbuild
 npx esbuild api/index.js --platform=neutral --packages=external --bundle --format=esm --outdir=dist/api
 
+# Compilar arquivos TypeScript do servidor para JavaScript
+npx esbuild server/*.ts --platform=node --packages=external --format=esm --outdir=dist/server
+
 # Atualizar as extensões de importação no arquivo compilado para incluir .js
 # Isso é necessário porque o Node ESM exige extensões explícitas
-sed -i 's/from "\(\.\.\/server\/[^"]*\)"/from "\1.js"/g' dist/api/index.js
+sed -i 's/from "\(\.\.\/server\/[^"]*\)"/from "\1.js"/g' dist/api/index.js || true
 
-# Copiar o arquivo de API para a pasta de distribuição
-cp api/index.js dist/api/index.js
-
-# Garantir que os arquivos de servidor estejam disponíveis na pasta de distribuição
-mkdir -p dist/server
-cp -r server/*.js dist/server/
+# Garantir que todas as pastas necessárias existam
+mkdir -p dist/public
