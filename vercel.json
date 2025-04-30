@@ -6,15 +6,19 @@
   "github": {
     "silent": true
   },
-  "functions": {
-    "api/server.js": {
-      "memory": 1024,
-      "maxDuration": 30
+  "routes": [
+    { 
+      "src": "/api/(.*)", 
+      "dest": "/api" 
+    },
+    { 
+      "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|svg|webp|json|txt|woff|woff2|ttf|otf))",
+      "dest": "/$1"
+    },
+    { 
+      "src": "/(.*)", 
+      "dest": "/index.html" 
     }
-  },
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/server" },
-    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {

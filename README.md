@@ -47,14 +47,33 @@ Sistema de gerenciamento para salão de beleza Dellas - Cabelo & Pele, otimizado
    - `SUPABASE_KEY`: Chave de API do Supabase
    - `NODE_ENV`: Defina como "production"
 
-4. O projeto está configurado para funcionar como uma aplicação serverless na Vercel:
+4. O projeto está configurado para funcionar como uma aplicação moderna na Vercel:
    - O frontend é servido como arquivos estáticos
-   - O backend é implementado como funções serverless através da API Routes da Vercel
+   - O backend é implementado como Edge Functions, que oferecem melhor desempenho e compatibilidade
 
 ### Estrutura de Arquivos para Deploy
 - `vercel.json`: Configura como o projeto deve ser construído e implantado
-- `api/server.js`: Implementa as funções serverless para API
+- `api/index.js`: Implementa a Edge Function para API com alta performance
 - `vercel-build.sh`: Script personalizado para construir a aplicação
+
+### Detalhes da Implementação para Vercel
+
+#### Edge Functions
+
+O aplicativo utiliza Edge Functions da Vercel em vez de funções serverless tradicionais. Isso proporciona:
+
+- **Menor latência**: As funções são executadas mais próximas do usuário
+- **Melhor compatibilidade**: Adaptado para o modelo de runtime da Vercel
+- **Sem servidor persistente**: Eliminação da dependência de Express.listen()
+- **Melhor escalabilidade**: Escala automaticamente com o tráfego
+
+#### Adaptação do Banco de Dados
+
+As conexões com o Supabase são gerenciadas dinamicamente para funcionar com o modelo stateless das Edge Functions. O arquivo `api/index.js` implementa:
+
+- Inicialização lazy do banco de dados
+- Gerenciamento de conexões compatível com runtime serverless
+- Cache eficiente de conexões entre chamadas de função
 
 ### Notas de Implementação
 - Os status dos agendamentos são traduzidos em português:
