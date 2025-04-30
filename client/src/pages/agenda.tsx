@@ -73,6 +73,7 @@ export default function Agenda() {
   };
   
   // Filtrar os agendamentos com base nos filtros selecionados
+  // Aplicar filtros baseados na aba ativa
   const filteredAppointments = allAppointments.filter(appointment => {
     const appointmentDate = new Date(appointment.start_time);
     
@@ -85,16 +86,47 @@ export default function Agenda() {
       clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       clientPhone.includes(searchQuery);
     
-    // Aplicar filtro de período
+    // Aplicar filtro de período baseado na aba ativa
     let matchesPeriod = true;
-    if (periodFilter === "today") {
-      matchesPeriod = isToday(appointmentDate);
-    } else if (periodFilter === "tomorrow") {
-      matchesPeriod = isTomorrow(appointmentDate);
-    } else if (periodFilter === "thisWeek") {
-      matchesPeriod = isThisWeek(appointmentDate, { weekStartsOn: 0 });
-    } else if (periodFilter === "thisMonth") {
-      matchesPeriod = isThisMonth(appointmentDate);
+    if (activeTab === "day") {
+      // Na aba dia, se o filtro for "all", mostramos apenas o dia atual
+      if (periodFilter === "all") {
+        matchesPeriod = isToday(appointmentDate);
+      } else if (periodFilter === "today") {
+        matchesPeriod = isToday(appointmentDate);
+      } else if (periodFilter === "tomorrow") {
+        matchesPeriod = isTomorrow(appointmentDate);
+      } else if (periodFilter === "thisWeek") {
+        matchesPeriod = isThisWeek(appointmentDate, { weekStartsOn: 0 });
+      } else if (periodFilter === "thisMonth") {
+        matchesPeriod = isThisMonth(appointmentDate);
+      }
+    } else if (activeTab === "week") {
+      // Na aba semana, se o filtro for "all", mostramos apenas a semana atual
+      if (periodFilter === "all") {
+        matchesPeriod = isThisWeek(appointmentDate, { weekStartsOn: 0 });
+      } else if (periodFilter === "today") {
+        matchesPeriod = isToday(appointmentDate);
+      } else if (periodFilter === "tomorrow") {
+        matchesPeriod = isTomorrow(appointmentDate);
+      } else if (periodFilter === "thisWeek") {
+        matchesPeriod = isThisWeek(appointmentDate, { weekStartsOn: 0 });
+      } else if (periodFilter === "thisMonth") {
+        matchesPeriod = isThisMonth(appointmentDate);
+      }
+    } else if (activeTab === "month") {
+      // Na aba mês, se o filtro for "all", mostramos apenas o mês atual
+      if (periodFilter === "all") {
+        matchesPeriod = isThisMonth(appointmentDate);
+      } else if (periodFilter === "today") {
+        matchesPeriod = isToday(appointmentDate);
+      } else if (periodFilter === "tomorrow") {
+        matchesPeriod = isTomorrow(appointmentDate);
+      } else if (periodFilter === "thisWeek") {
+        matchesPeriod = isThisWeek(appointmentDate, { weekStartsOn: 0 });
+      } else if (periodFilter === "thisMonth") {
+        matchesPeriod = isThisMonth(appointmentDate);
+      }
     }
     
     // Aplicar filtro de status
@@ -123,6 +155,15 @@ export default function Agenda() {
   // Calculamos a paginação baseada nos agendamentos FILTRADOS
   const total = filteredAppointments.length;
   const totalPages = Math.ceil(total / perPage);
+  
+  // Log para depuração
+  console.log("Total appointments:", total);
+  console.log("Total pages:", totalPages);
+  console.log("Current page:", currentPage);
+  console.log("Active tab:", activeTab);
+  console.log("Period filter:", periodFilter);
+  console.log("Status filter:", statusFilter);
+  
   const pagination = { 
     total, 
     page: currentPage, 
@@ -136,6 +177,7 @@ export default function Agenda() {
   });
 
   const handlePageChange = (page: number) => {
+    console.log("Changing to page:", page, "Total pages:", totalPages);
     setCurrentPage(page);
   };
 
@@ -174,7 +216,13 @@ export default function Agenda() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+      <Tabs 
+        value={activeTab} 
+        onValueChange={(tab) => {
+          setActiveTab(tab);
+          setCurrentPage(1); // Reset to page 1 when changing tabs
+        }} 
+        className="mb-6">
         <div className="flex items-center justify-between">
           <TabsList className="grid grid-cols-3 w-[300px]">
             <TabsTrigger value="day">Dia</TabsTrigger>
