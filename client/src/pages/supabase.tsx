@@ -15,7 +15,15 @@ export default function SupabasePage() {
     queryFn: async () => {
       const response = await fetch('/api/supabase/sync');
       if (!response.ok) {
-        throw new Error('Falha ao sincronizar com Supabase');
+        const data = await response.json();
+        const errorMsg = data.error || 'Falha ao sincronizar com Supabase';
+        
+        // Se for erro de permissão específico
+        if (errorMsg.includes('not allowed') || errorMsg.includes('not_admin')) {
+          throw new Error('Erro de permissão: É necessária uma chave de serviço do Supabase com permissões administrativas');
+        }
+        
+        throw new Error(errorMsg);
       }
       return response.json();
     },
@@ -28,7 +36,15 @@ export default function SupabasePage() {
     queryFn: async () => {
       const response = await fetch('/api/supabase/profiles');
       if (!response.ok) {
-        throw new Error('Falha ao buscar perfis do Supabase');
+        const data = await response.json();
+        const errorMsg = data.error || 'Falha ao buscar perfis do Supabase';
+        
+        // Se for erro de permissão específico
+        if (errorMsg.includes('not allowed') || errorMsg.includes('not_admin')) {
+          throw new Error('Erro de permissão: É necessária uma chave de serviço do Supabase com permissões administrativas');
+        }
+        
+        throw new Error(errorMsg);
       }
       return response.json();
     },
@@ -40,7 +56,15 @@ export default function SupabasePage() {
     queryFn: async () => {
       const response = await fetch('/api/supabase/users');
       if (!response.ok) {
-        throw new Error('Falha ao buscar usuários do Supabase');
+        const data = await response.json();
+        const errorMsg = data.error || 'Falha ao buscar usuários do Supabase';
+        
+        // Se for erro de permissão específico
+        if (errorMsg.includes('not allowed') || errorMsg.includes('not_admin')) {
+          throw new Error('Erro de permissão: É necessária uma chave de serviço do Supabase com permissões administrativas');
+        }
+        
+        throw new Error(errorMsg);
       }
       return response.json();
     },
