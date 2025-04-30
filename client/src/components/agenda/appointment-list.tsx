@@ -167,13 +167,8 @@ export default function AppointmentList({
     }
     
     return matchesSearch && matchesPeriod && matchesStatus;
-  }).sort((a, b) => {
-    // Ordenar por data (do mais recente para o mais antigo)
-    const dateA = parseDateSafely(a.start_time);
-    const dateB = parseDateSafely(b.start_time);
-    // Inverter a ordem para mostrar mais recentes primeiro
-    return dateB.getTime() - dateA.getTime();
   });
+  // A ordenação agora é feita no backend, não precisamos ordenar novamente aqui
 
   // Renderizar o status do agendamento com cores correspondentes
   const renderStatus = (status: string, paymentStatus: string) => {

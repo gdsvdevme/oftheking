@@ -35,11 +35,18 @@ export default function Agenda() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const perPage = 20; // 20 agendamentos por página
 
+  // Preparar parâmetros de consulta incluindo data/mês atual para garantir que todas as datas sejam consideradas
+  const queryParams = {
+    page: currentPage,
+    perPage,
+    // Não incluímos filtros de data aqui para obter todos os agendamentos
+  };
+
   const { data, isLoading, refetch } = useQuery<{
     appointments: any[];
     pagination: PaginationInfo;
   }>({
-    queryKey: ['/api/appointments', { page: currentPage, perPage }],
+    queryKey: ['/api/appointments', queryParams],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
