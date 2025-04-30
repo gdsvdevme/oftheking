@@ -205,12 +205,18 @@ export class DatabaseStorage implements IStorage {
     
     // Reorganize data to match expected format
     const appointments = data?.map(appointment => {
+      // Extraímos os dados do cliente e reorganizamos para o formato esperado pelo frontend
+      const { clients, ...appointmentData } = appointment;
+      
       return {
-        ...appointment,
-        client: appointment.clients  // Colocando os dados do cliente no campo client
+        ...appointmentData,
+        client: clients, // Mapeia clients para client (singular)
+        client_name: clients?.name || "", // Adiciona client_name explicitamente
+        client_phone: clients?.phone || "" // Adiciona client_phone explicitamente
       };
     }) || [];
     
+    // console.log("Formato ajustado:", JSON.stringify(appointments[0], null, 2));
     return appointments as Appointment[];
   }
 
@@ -232,8 +238,14 @@ export class DatabaseStorage implements IStorage {
     
     if (servicesError) throw servicesError;
     
+    // Reorganizar os dados para manter consistência com getAppointments
+    const { clients, ...appointmentData } = appointment;
+    
     return {
-      ...appointment,
+      ...appointmentData,
+      client: clients,
+      client_name: clients?.name || "",
+      client_phone: clients?.phone || "",
       services: appointmentServices
     };
   }
@@ -262,8 +274,14 @@ export class DatabaseStorage implements IStorage {
       
       if (servicesError) throw servicesError;
       
+      // Reorganizar os dados para manter consistência com as outras funções
+      const { clients, ...appointmentData } = appointment;
+      
       result.push({
-        ...appointment,
+        ...appointmentData,
+        client: clients, // Mapeia clients para client (singular)
+        client_name: clients?.name || "", // Adiciona client_name explicitamente
+        client_phone: clients?.phone || "", // Adiciona client_phone explicitamente
         services
       });
     }
