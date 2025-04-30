@@ -119,6 +119,21 @@ export default function NewAppointmentModal({
 
   const onSubmit = async (data: AppointmentFormValues) => {
     try {
+      console.log("Dados do formulário:", data);
+
+      // Verificar se os campos obrigatórios estão presentes
+      if (!data.client_id) {
+        throw new Error("Cliente não selecionado");
+      }
+      
+      if (!data.date || !data.time) {
+        throw new Error("Data ou horário não selecionados");
+      }
+      
+      if (!data.service_ids || data.service_ids.length === 0) {
+        throw new Error("Selecione pelo menos um serviço");
+      }
+      
       // Convert form data to appointment data
       const [hours, minutes] = data.time.split(':').map(Number);
       const startTime = new Date(data.date);
@@ -133,10 +148,14 @@ export default function NewAppointmentModal({
         service_ids: data.service_ids,
         recurrence: data.recurrence === "none" ? null : data.recurrence,
         notes: data.notes,
-        final_price: serviceDetails.totalPrice,
+        final_price: serviceDetails.totalPrice.toString(),
+        status: "confirmado"
       };
       
-      await apiRequest("POST", "/api/appointments", appointmentData);
+      console.log("Dados enviados para API:", appointmentData);
+      
+      const response = await apiRequest("POST", "/api/appointments", appointmentData);
+      console.log("Resposta da API:", response);
       
       queryClient.invalidateQueries({ queryKey: ['/api/appointments'] });
       
@@ -147,9 +166,10 @@ export default function NewAppointmentModal({
       
       onClose();
     } catch (error) {
+      console.error("Erro ao criar agendamento:", error);
       toast({
         title: "Erro ao realizar agendamento",
-        description: "Verifique os dados e tente novamente.",
+        description: error instanceof Error ? error.message : "Verifique os dados e tente novamente.",
         variant: "destructive",
       });
     }
