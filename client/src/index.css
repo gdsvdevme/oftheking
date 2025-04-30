@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Importação das fontes */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --background: 343 100% 98%;
+  --foreground: 20 14.3% 4.1%;
+  --muted: 60 4.8% 95.9%;
+  --muted-foreground: 25 5.3% 44.7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 20 14.3% 4.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 20 14.3% 4.1%;
+  --border: 20 5.9% 90%;
+  --input: 20 5.9% 90%;
+  --primary: 330 98% 71%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 350 100% 88%;
+  --secondary-foreground: 20 14.3% 4.1%;
+  --accent: 217 76% 59%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 100%;
+  --ring: 330 98% 71%;
+  --radius: 0.75rem;
+  
+  /* Chart colors */
+  --chart-1: 142 70% 49%;
+  --chart-2: 0 84% 60%;
+  --chart-3: 217 76% 59%;
+  --chart-4: 330 98% 71%;
+  --chart-5: 350 100% 88%;
+
+  /* Custom colors */
+  --success: 142 70% 49%;
+  --warning: 35 100% 50%;
+  
+  /* Sidebar */
+  --sidebar-width: 16rem;
+  --sidebar-background: 0 0% 100%;
+  --sidebar-foreground: 20 14.3% 4.1%;
+  --sidebar-primary: 330 98% 71%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 350 100% 88%;
+  --sidebar-accent-foreground: 20 14.3% 4.1%;
+  --sidebar-border: 20 5.9% 90%;
+  --sidebar-ring: 330 98% 71%;
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --primary: 330 98% 71%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 350 100% 88%;
+  --secondary-foreground: 0 0% 98%;
+  --accent: 217 76% 59%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 240 4.9% 83.9%;
+  --radius: 0.75rem;
+  
+  /* Sidebar */
+  --sidebar-background: 240 10% 3.9%;
+  --sidebar-foreground: 0 0% 98%;
+  --sidebar-primary: 330 98% 71%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 350 100% 88%;
+  --sidebar-accent-foreground: 0 0% 98%;
+  --sidebar-border: 240 3.7% 15.9%;
+  --sidebar-ring: 240 4.9% 83.9%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-montserrat;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-poppins font-semibold;
+  }
+}
+
+@layer utilities {
+  .status-paid {
+    @apply bg-success text-white text-xs rounded px-2 py-0.5;
+  }
+  
+  .status-pending {
+    @apply bg-warning text-white text-xs rounded px-2 py-0.5;
+  }
+
+  .status-cancelled {
+    @apply bg-destructive text-white text-xs rounded px-2 py-0.5;
+  }
+}
