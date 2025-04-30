@@ -287,7 +287,7 @@ export default function NewAppointmentModal({
                             <div className="flex items-center">
                               <Checkbox 
                                 checked={selectedServices.includes(service.id)}
-                                onCheckedChange={() => handleServiceToggle(service.id)}
+                                onCheckedChange={(checked, e) => handleServiceToggle(service.id, e?.nativeEvent)}
                                 className="h-4 w-4 text-primary"
                               />
                               <label className="ml-2 block text-sm text-gray-900">{service.name}</label>
