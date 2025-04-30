@@ -188,7 +188,7 @@ export class DatabaseStorage implements IStorage {
   async getAppointments(startDate?: Date, endDate?: Date): Promise<Appointment[]> {
     let query = supabase
       .from('appointments')
-      .select('*')
+      .select('*, clients(*)')  // Incluindo dados do cliente na consulta
       .order('start_time');
     
     if (startDate) {
@@ -202,7 +202,16 @@ export class DatabaseStorage implements IStorage {
     const { data, error } = await query;
     
     if (error) throw error;
-    return data as Appointment[];
+    
+    // Reorganize data to match expected format
+    const appointments = data?.map(appointment => {
+      return {
+        ...appointment,
+        client: appointment.clients  // Colocando os dados do cliente no campo client
+      };
+    }) || [];
+    
+    return appointments as Appointment[];
   }
 
   async getAppointmentWithServices(id: string): Promise<any> {
