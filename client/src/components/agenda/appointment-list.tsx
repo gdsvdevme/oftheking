@@ -2,9 +2,7 @@ import { useState } from "react";
 import { 
   format, 
   isToday, 
-  isTomorrow, 
-  isThisWeek, 
-  isThisMonth,
+  isTomorrow,
   parseISO,
   isSameDay
 } from "date-fns";
@@ -29,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 
-// Tipagem dos filtros
+// Tipagem dos filtros (agora estão no componente pai Agenda)
 type FilterPeriod = "all" | "today" | "tomorrow" | "thisWeek" | "thisMonth";
 type FilterStatus = "all" | "scheduled" | "completed" | "cancelled" | "pending";
 
@@ -62,11 +60,13 @@ interface Appointment {
 interface AppointmentListProps {
   appointments: Appointment[];
   onAppointmentClick: (appointmentId: string) => void;
+  onFiltersChange?: (searchQuery: string, periodFilter: FilterPeriod, statusFilter: FilterStatus) => void;
 }
 
 export default function AppointmentList({ 
   appointments, 
-  onAppointmentClick 
+  onAppointmentClick,
+  onFiltersChange 
 }: AppointmentListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   // Por padrão, não aplicamos nenhum filtro (para ver todos os agendamentos)
@@ -122,53 +122,33 @@ export default function AppointmentList({
     console.log('Total appointments:', appointments.length);
     logAppointmentData(appointments[0]);
   }
-
-  // Filtrar os agendamentos com base nos filtros selecionados
-  const filteredAppointments = appointments.filter(appointment => {
-    const appointmentDate = parseDateSafely(appointment.start_time);
+  
+  // Função para lidar com mudanças nos filtros
+  const handleFilterChange = (
+    newSearchQuery?: string, 
+    newPeriodFilter?: FilterPeriod, 
+    newStatusFilter?: FilterStatus
+  ) => {
+    const updatedSearchQuery = newSearchQuery !== undefined ? newSearchQuery : searchQuery;
+    const updatedPeriodFilter = newPeriodFilter !== undefined ? newPeriodFilter : periodFilter;
+    const updatedStatusFilter = newStatusFilter !== undefined ? newStatusFilter : statusFilter;
     
-    // Verificamos se client existe e tem propriedade name
-    const clientName = appointment.client?.name || appointment.client_name || "";
-    const clientPhone = appointment.client?.phone || appointment.client_phone || "";
+    setSearchQuery(updatedSearchQuery);
+    setPeriodFilter(updatedPeriodFilter);
+    setStatusFilter(updatedStatusFilter);
     
-    const matchesSearch = 
-      !searchQuery || 
-      clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      clientPhone.includes(searchQuery);
-    
-    // Aplicar filtro de período
-    let matchesPeriod = true;
-    if (periodFilter === "today") {
-      matchesPeriod = isToday(appointmentDate);
-    } else if (periodFilter === "tomorrow") {
-      matchesPeriod = isTomorrow(appointmentDate);
-    } else if (periodFilter === "thisWeek") {
-      // Verificar se está na mesma semana
-      matchesPeriod = isThisWeek(appointmentDate, { weekStartsOn: 0 });
-    } else if (periodFilter === "thisMonth") {
-      // Verificar se está no mesmo mês
-      matchesPeriod = isThisMonth(appointmentDate);
+    // Notificar o componente pai sobre a mudança nos filtros
+    if (onFiltersChange) {
+      onFiltersChange(updatedSearchQuery, updatedPeriodFilter, updatedStatusFilter);
     }
-    
-    // Aplicar filtro de status
-    let matchesStatus = true;
-    if (statusFilter !== "all") {
-      if (statusFilter === "pending") {
-        // Verifica se o pagamento está pendente (não pago)
-        matchesStatus = appointment.payment_status === "pending";
-      } else if (statusFilter === "scheduled") {
-        // Verifica se está agendado (não cancelado e não concluído)
-        matchesStatus = appointment.status !== "cancelled" && 
-                        appointment.status !== "completed";
-      } else {
-        // Verifica os outros status diretamente
-        matchesStatus = appointment.status === statusFilter;
-      }
+  };
+  
+  // Usar um efeito para notificar o componente pai quando os filtros mudarem durante a montagem
+  useEffect(() => {
+    if (onFiltersChange) {
+      onFiltersChange(searchQuery, periodFilter, statusFilter);
     }
-    
-    return matchesSearch && matchesPeriod && matchesStatus;
-  });
-  // A ordenação agora é feita no backend, não precisamos ordenar novamente aqui
+  }, []);
 
   // Renderizar o status do agendamento com cores correspondentes
   const renderStatus = (status: string, paymentStatus: string) => {
@@ -209,7 +189,10 @@ export default function AppointmentList({
       {/* Filtros e pesquisa */}
       <div className="flex flex-col sm:flex-row gap-3 justify-between">
         <div className="flex gap-2 items-center flex-wrap">
-          <Select value={periodFilter} onValueChange={(value) => setPeriodFilter(value as FilterPeriod)}>
+          <Select 
+            value={periodFilter} 
+            onValueChange={(value) => handleFilterChange(undefined, value as FilterPeriod, undefined)}
+          >
             <SelectTrigger className="w-[140px]">
               <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
               <SelectValue placeholder="Período" />
@@ -223,7 +206,10 @@ export default function AppointmentList({
             </SelectContent>
           </Select>
           
-          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as FilterStatus)}>
+          <Select 
+            value={statusFilter} 
+            onValueChange={(value) => handleFilterChange(undefined, undefined, value as FilterStatus)}
+          >
             <SelectTrigger className="w-[140px]">
               <Filter className="mr-2 h-4 w-4 text-primary" />
               <SelectValue placeholder="Status" />
@@ -243,7 +229,7 @@ export default function AppointmentList({
           <Input
             placeholder="Buscar por nome ou telefone"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleFilterChange(e.target.value, undefined, undefined)}
             className="pl-8"
           />
         </div>
@@ -251,7 +237,7 @@ export default function AppointmentList({
 
       {/* Contador de resultados */}
       <div className="text-sm text-gray-500">
-        {filteredAppointments.length} {filteredAppointments.length === 1 ? 'agendamento encontrado' : 'agendamentos encontrados'}
+        {appointments.length} {appointments.length === 1 ? 'agendamento encontrado' : 'agendamentos encontrados'}
       </div>
       
       {/* Tabela de agendamentos */}
@@ -268,14 +254,14 @@ export default function AppointmentList({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredAppointments.length === 0 ? (
+            {appointments.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                   Nenhum agendamento encontrado com os filtros aplicados
                 </TableCell>
               </TableRow>
             ) : (
-              filteredAppointments.map((appointment) => (
+              appointments.map((appointment) => (
                 <TableRow key={appointment.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => onAppointmentClick(appointment.id)}>
                   <TableCell>
                     <div className="font-medium">

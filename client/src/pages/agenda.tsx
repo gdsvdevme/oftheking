@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { 
+  isToday, 
+  isTomorrow, 
+  isThisWeek, 
+  isThisMonth 
+} from "date-fns";
+import { 
   Tabs, 
   TabsContent, 
   TabsList, 
@@ -19,6 +25,10 @@ import { Pagination } from "@/components/ui/pagination";
 
 type ViewMode = "day" | "week" | "month";
 
+// Tipagem dos filtros (movidos do AppointmentList)
+type FilterPeriod = "all" | "today" | "tomorrow" | "thisWeek" | "thisMonth";
+type FilterStatus = "all" | "scheduled" | "completed" | "cancelled" | "pending";
+
 interface PaginationInfo {
   total: number;
   page: number;
@@ -33,6 +43,9 @@ export default function Agenda() {
   const [showBlockTimeModal, setShowBlockTimeModal] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [periodFilter, setPeriodFilter] = useState<FilterPeriod>("all");
+  const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
   const perPage = 20; // 20 agendamentos por página
 
   // Não precisamos de parâmetros de página agora, pois puxaremos todos os dados
@@ -47,15 +60,68 @@ export default function Agenda() {
   // Todos os agendamentos vêm do servidor
   const allAppointments = data?.appointments || [];
   
-  // Paginação manual no lado do cliente
+  // Quando os filtros ou a busca mudam, voltamos para a primeira página
+  const handleFiltersChange = (
+    searchQuery: string, 
+    periodFilter: FilterPeriod, 
+    statusFilter: FilterStatus
+  ) => {
+    setSearchQuery(searchQuery);
+    setPeriodFilter(periodFilter);
+    setStatusFilter(statusFilter);
+    setCurrentPage(1); // Voltar para a primeira página quando os filtros mudam
+  };
+  
+  // Filtrar os agendamentos com base nos filtros selecionados
+  const filteredAppointments = allAppointments.filter(appointment => {
+    const appointmentDate = new Date(appointment.start_time);
+    
+    // Verificamos se client existe e tem propriedade name
+    const clientName = appointment.client?.name || appointment.client_name || "";
+    const clientPhone = appointment.client?.phone || appointment.client_phone || "";
+    
+    const matchesSearch = 
+      !searchQuery || 
+      clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      clientPhone.includes(searchQuery);
+    
+    // Aplicar filtro de período
+    let matchesPeriod = true;
+    if (periodFilter === "today") {
+      matchesPeriod = isToday(appointmentDate);
+    } else if (periodFilter === "tomorrow") {
+      matchesPeriod = isTomorrow(appointmentDate);
+    } else if (periodFilter === "thisWeek") {
+      matchesPeriod = isThisWeek(appointmentDate, { weekStartsOn: 0 });
+    } else if (periodFilter === "thisMonth") {
+      matchesPeriod = isThisMonth(appointmentDate);
+    }
+    
+    // Aplicar filtro de status
+    let matchesStatus = true;
+    if (statusFilter !== "all") {
+      if (statusFilter === "pending") {
+        matchesStatus = appointment.payment_status === "pending";
+      } else if (statusFilter === "scheduled") {
+        matchesStatus = appointment.status !== "cancelled" && 
+                        appointment.status !== "completed";
+      } else {
+        matchesStatus = appointment.status === statusFilter;
+      }
+    }
+    
+    return matchesSearch && matchesPeriod && matchesStatus;
+  });
+  
+  // Paginação manual no lado do cliente APÓS a filtragem
   const startIndex = (currentPage - 1) * perPage;
   const endIndex = startIndex + perPage;
   
-  // Pegamos apenas uma página dos agendamentos para exibir
-  const appointments = allAppointments.slice(startIndex, endIndex);
+  // Pegamos apenas uma página dos agendamentos FILTRADOS para exibir
+  const appointments = filteredAppointments.slice(startIndex, endIndex);
   
-  // Calculamos a paginação
-  const total = allAppointments.length;
+  // Calculamos a paginação baseada nos agendamentos FILTRADOS
+  const total = filteredAppointments.length;
   const totalPages = Math.ceil(total / perPage);
   const pagination = { 
     total, 
@@ -125,6 +191,7 @@ export default function Agenda() {
           <AppointmentList
             appointments={appointments}
             onAppointmentClick={handleAppointmentClick}
+            onFiltersChange={handleFiltersChange}
           />
           <Pagination
             currentPage={pagination.page}
@@ -137,6 +204,7 @@ export default function Agenda() {
           <AppointmentList
             appointments={appointments}
             onAppointmentClick={handleAppointmentClick}
+            onFiltersChange={handleFiltersChange}
           />
           <Pagination
             currentPage={pagination.page}
@@ -149,6 +217,7 @@ export default function Agenda() {
           <AppointmentList
             appointments={appointments}
             onAppointmentClick={handleAppointmentClick}
+            onFiltersChange={handleFiltersChange}
           />
           <Pagination
             currentPage={pagination.page}
