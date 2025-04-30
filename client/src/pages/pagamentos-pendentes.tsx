@@ -355,6 +355,11 @@ export default function PagamentosPendentes() {
   const [showClientModal, setShowClientModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [activeTab, setActiveTab] = useState<string>("pending");
+  const [dateFilter, setDateFilter] = useState<"past" | "all">("past");
+  
+  // Data atual para filtro
+  const today = new Date();
+  today.setHours(23, 59, 59, 999); // Final do dia de hoje
   
   // Consulta para carregar os agendamentos
   const { data, isLoading, refetch } = useQuery<{
@@ -470,7 +475,12 @@ export default function PagamentosPendentes() {
         const searchLower = searchQuery.toLowerCase();
         const nameMatch = appointment.client?.name?.toLowerCase().includes(searchLower);
         
-        return matchesPaymentStatus && matchesStatus && (searchQuery === "" || nameMatch);
+        // Filtro por data - apenas da data atual para trás
+        const appointmentDate = new Date(appointment.start_time);
+        const matchesDate = dateFilter === "all" || 
+                           (dateFilter === "past" && appointmentDate <= today);
+        
+        return matchesPaymentStatus && matchesStatus && matchesDate && (searchQuery === "" || nameMatch);
       });
   
   // Agrupar por cliente
@@ -620,19 +630,33 @@ export default function PagamentosPendentes() {
                 </div>
               </div>
               
-              <div className="w-full md:w-64">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filtrar por status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os status</SelectItem>
-                    <SelectItem value="scheduled">Agendado</SelectItem>
-                    <SelectItem value="confirmed">Confirmado</SelectItem>
-                    <SelectItem value="completed">Concluído</SelectItem>
-                    <SelectItem value="cancelled">Cancelado</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="flex w-full md:w-auto gap-2">
+                <div className="w-full md:w-64">
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filtrar por status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os status</SelectItem>
+                      <SelectItem value="scheduled">Agendado</SelectItem>
+                      <SelectItem value="confirmed">Confirmado</SelectItem>
+                      <SelectItem value="completed">Concluído</SelectItem>
+                      <SelectItem value="cancelled">Cancelado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="w-full md:w-auto">
+                  <Select value={dateFilter} onValueChange={(value: "past" | "all") => setDateFilter(value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filtrar por data" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="past">Até hoje</SelectItem>
+                      <SelectItem value="all">Todas as datas</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
             
