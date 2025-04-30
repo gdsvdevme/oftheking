@@ -15,8 +15,16 @@ import BlockTimeModal from "@/components/agenda/block-time-modal";
 import AppointmentList from "@/components/agenda/appointment-list";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, Plus, ListFilter } from "lucide-react";
+import { Pagination } from "@/components/ui/pagination";
 
 type ViewMode = "day" | "week" | "month";
+
+interface PaginationInfo {
+  total: number;
+  page: number;
+  perPage: number;
+  totalPages: number;
+}
 
 export default function Agenda() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -24,16 +32,28 @@ export default function Agenda() {
   const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
   const [showBlockTimeModal, setShowBlockTimeModal] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const perPage = 20; // 20 agendamentos por página
 
-  const { data: appointments = [] } = useQuery<any[]>({
-    queryKey: ['/api/appointments'],
+  const { data, isLoading, refetch } = useQuery<{
+    appointments: any[];
+    pagination: PaginationInfo;
+  }>({
+    queryKey: ['/api/appointments', { page: currentPage, perPage }],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  const appointments = data?.appointments || [];
+  const pagination = data?.pagination || { total: 0, page: 1, perPage, totalPages: 1 };
 
   const { data: blockedTimes = [] } = useQuery({
     queryKey: ['/api/blocked-schedules'],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleAppointmentClick = (appointmentId: string) => {
     setSelectedAppointmentId(appointmentId);
@@ -88,6 +108,11 @@ export default function Agenda() {
             appointments={appointments}
             onAppointmentClick={handleAppointmentClick}
           />
+          <Pagination
+            currentPage={pagination.page}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+          />
         </TabsContent>
         
         <TabsContent value="week" className="mt-4">
@@ -95,12 +120,22 @@ export default function Agenda() {
             appointments={appointments}
             onAppointmentClick={handleAppointmentClick}
           />
+          <Pagination
+            currentPage={pagination.page}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+          />
         </TabsContent>
         
         <TabsContent value="month" className="mt-4">
           <AppointmentList
             appointments={appointments}
             onAppointmentClick={handleAppointmentClick}
+          />
+          <Pagination
+            currentPage={pagination.page}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
           />
         </TabsContent>
       </Tabs>
