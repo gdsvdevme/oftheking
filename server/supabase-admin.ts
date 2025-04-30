@@ -4,6 +4,12 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.SUPABASE_URL as string;
 const supabaseKey = process.env.SUPABASE_KEY as string;
 
+// Verificar e logar as credenciais (sem mostrar valores completos por segurança)
+console.log(`Supabase URL disponível: ${!!supabaseUrl}`);
+console.log(`Supabase Key disponível: ${!!supabaseKey}`);
+if (supabaseUrl) console.log(`Supabase URL começa com: ${supabaseUrl.substring(0, 8)}...`);
+if (supabaseKey) console.log(`Supabase Key começa com: ${supabaseKey.substring(0, 5)}...`);
+
 if (!supabaseUrl || !supabaseKey) {
   console.error('As variáveis de ambiente SUPABASE_URL e SUPABASE_KEY são necessárias para a conexão com o Supabase.');
 }

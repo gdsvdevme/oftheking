@@ -449,8 +449,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const result = await syncDataWithSupabase();
       res.json(result);
-    } catch (error) {
-      res.status(500).json({ message: "Erro ao sincronizar com Supabase", error: error.message });
+    } catch (error: any) {
+      res.status(500).json({ message: "Erro ao sincronizar com Supabase", error: error?.message });
     }
   });
   
@@ -462,9 +462,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Erro ao buscar perfis do Supabase", error: error.message });
       }
       
-      res.json(data);
-    } catch (error) {
-      res.status(500).json({ message: "Erro ao acessar dados do Supabase", error: error.message });
+      // Retornar em formato compatível com a página
+      res.json({
+        profiles: data || [],
+        count: data?.length || 0
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Erro ao acessar dados do Supabase", error: error?.message });
     }
   });
   
@@ -476,9 +480,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Erro ao buscar usuários do Supabase", error: error.message });
       }
       
-      res.json(data.users);
-    } catch (error) {
-      res.status(500).json({ message: "Erro ao acessar usuários do Supabase", error: error.message });
+      // Retornar em formato compatível com a página
+      res.json({
+        users: data?.users || [],
+        count: data?.users?.length || 0
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Erro ao acessar usuários do Supabase", error: error?.message });
     }
   });
 
