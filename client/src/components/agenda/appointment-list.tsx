@@ -146,15 +146,30 @@ export default function AppointmentList({
   // Não precisamos mais deste useEffect pois estamos chamando onFiltersChange diretamente no handleFilterChange
 
   // Renderizar o status do agendamento com cores correspondentes
-  const renderStatus = (status: string, paymentStatus: string) => {
-    if (status === "completed") {
-      return <Badge className="bg-green-500">Concluído</Badge>;
-    } else if (status === "cancelled") {
+  const renderStatus = (status: string, paymentStatus: string | null) => {
+    // Status "cancelado"
+    if (status === "canceled") {
       return <Badge variant="destructive">Cancelado</Badge>;
-    } else if (paymentStatus === "paid") {
-      return <Badge className="bg-blue-500">Pago</Badge>;
-    } else {
-      return <Badge variant="outline">Pendente</Badge>;
+    }
+    
+    // Status "finalizado" com pagamento realizado
+    else if (status === "completed" || paymentStatus === "paid") {
+      return <Badge className="bg-green-500">Finalizado</Badge>;
+    }
+    
+    // Status "pagamento pendente"
+    else if (status === "payment_pending" || paymentStatus === "pending") {
+      return <Badge className="bg-amber-500">Pagamento Pendente</Badge>;
+    }
+    
+    // Status "agendado" (padrão)
+    else if (status === "scheduled" || !paymentStatus) {
+      return <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">Agendado</Badge>;
+    }
+    
+    // Qualquer outro status
+    else {
+      return <Badge variant="outline">{status}</Badge>;
     }
   };
 
@@ -212,9 +227,9 @@ export default function AppointmentList({
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="scheduled">Agendado</SelectItem>
-              <SelectItem value="completed">Concluído</SelectItem>
-              <SelectItem value="cancelled">Cancelado</SelectItem>
-              <SelectItem value="pending">Pagamento pendente</SelectItem>
+              <SelectItem value="completed">Finalizado</SelectItem>
+              <SelectItem value="canceled">Cancelado</SelectItem>
+              <SelectItem value="payment_pending">Pagamento pendente</SelectItem>
             </SelectContent>
           </Select>
         </div>

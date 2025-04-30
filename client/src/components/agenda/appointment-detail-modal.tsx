@@ -96,18 +96,23 @@ export default function AppointmentDetailModal({
 
   const handleDelete = async () => {
     try {
-      await apiRequest("DELETE", `/api/appointments/${appointmentId}`, null);
+      // Em vez de excluir, vamos apenas atualizar o status para "canceled"
+      await apiRequest("PUT", `/api/appointments/${appointmentId}`, {
+        status: "canceled", // Definir status como cancelado
+        payment_status: null // Remover status de pagamento
+      });
       
       queryClient.invalidateQueries({ queryKey: ['/api/appointments'] });
       
       toast({
         title: "Agendamento cancelado com sucesso",
-        description: "O agendamento foi removido da agenda.",
+        description: "O agendamento foi marcado como cancelado.",
       });
       
       setIsDeleteDialogOpen(false);
       onClose();
     } catch (error) {
+      console.error("Erro ao cancelar agendamento:", error);
       toast({
         title: "Erro ao cancelar agendamento",
         description: "Não foi possível cancelar o agendamento. Tente novamente.",
@@ -119,13 +124,29 @@ export default function AppointmentDetailModal({
   const getStatusBadge = () => {
     if (!appointment) return null;
     
-    switch (appointment.payment_status) {
-      case "paid":
-        return <span className="status-paid">Pago</span>;
-      case "pending":
-        return <span className="status-pending">Pendente</span>;
-      default:
-        return null;
+    // Status "cancelado"
+    if (appointment.status === "canceled") {
+      return <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800 font-medium">Cancelado</span>;
+    }
+    
+    // Status "finalizado" com pagamento realizado
+    else if (appointment.status === "completed" || appointment.payment_status === "paid") {
+      return <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 font-medium">Finalizado</span>;
+    }
+    
+    // Status "pagamento pendente"
+    else if (appointment.status === "payment_pending" || appointment.payment_status === "pending") {
+      return <span className="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-800 font-medium">Pagamento Pendente</span>;
+    }
+    
+    // Status "agendado" (padrão)
+    else if (appointment.status === "scheduled" || !appointment.payment_status) {
+      return <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800 font-medium">Agendado</span>;
+    }
+    
+    // Qualquer outro status
+    else {
+      return <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800 font-medium">{appointment.status}</span>;
     }
   };
 
@@ -389,11 +410,20 @@ function ConfirmAppointmentForm({ appointment, onClose, onSuccess }: ConfirmAppo
 
   const onSubmit = async (data: z.infer<typeof confirmAppointmentSchema>) => {
     try {
-      // Atualizar o agendamento com os valores de serviços e status de pagamento
+      // Determinar o status do agendamento com base no status de pagamento
+      let status = "scheduled"; // Valor padrão
+      
+      if (data.payment_status === "paid") {
+        status = "completed"; // Finalizado (pago)
+      } else if (data.payment_status === "pending") {
+        status = "payment_pending"; // Pagamento pendente
+      }
+      
+      // Atualizar o agendamento com os valores de serviços, status de pagamento e status
       await apiRequest("PUT", `/api/appointments/${appointment.id}`, {
         payment_status: data.payment_status,
-        final_price: data.final_price,
-        // Outros campos necessários para atualizar os preços dos serviços podem ser adicionados aqui
+        final_price: String(data.final_price), // Convertemos para string para evitar erro de validação
+        status: status
       });
       
       // Invalidar consultas para atualizar dados
