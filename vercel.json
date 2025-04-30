@@ -1,22 +1,33 @@
 {
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
+  "version": 2,
+  "buildCommand": "chmod +x vercel-build.sh && ./vercel-build.sh",
   "installCommand": "npm install",
-  "framework": null,
   "outputDirectory": "dist",
   "github": {
     "silent": true
   },
-  "version": 2,
-  "routes": [
-    { "handle": "filesystem" },
+  "functions": {
+    "api/*.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/server.js" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
     {
-      "src": "/api/(.*)",
-      "dest": "/server/index.js"
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
     }
   ],
   "env": {
