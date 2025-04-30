@@ -464,8 +464,8 @@ export default function PagamentosPendentes() {
   const pendingPayments = allAppointments.filter((appointment: any) => {
         // Filtro básico por status de pagamento
         const matchesPaymentStatus = activeTab === "all" || 
-          (activeTab === "pending" && appointment.payment_status === "pending") ||
-          (activeTab === "paid" && appointment.payment_status === "paid");
+          (activeTab === "pending" && (appointment.payment_status === "pendente" || appointment.status === "pagamento pendente")) ||
+          (activeTab === "paid" && (appointment.payment_status === "pago" || appointment.status === "finalizado"));
           
         // Filtro por status do agendamento
         const matchesStatus = statusFilter === "all" || 
@@ -520,7 +520,7 @@ export default function PagamentosPendentes() {
     setSelectedClient(client);
     // Filtrar apenas pagamentos pendentes se estivermos na aba "pendentes"
     const filteredAppointments = activeTab === "pending" 
-      ? appointments.filter(a => a.payment_status === "pending")
+      ? appointments.filter(a => a.payment_status === "pendente" || a.status === "pagamento pendente")
       : appointments;
     
     setSelectedClient({
@@ -559,13 +559,18 @@ export default function PagamentosPendentes() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "scheduled":
+      case "agendado":
         return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Agendado</Badge>;
       case "confirmed":
         return <Badge variant="outline" className="bg-blue-100 text-blue-800">Confirmado</Badge>;
       case "completed":
-        return <Badge variant="outline" className="bg-green-100 text-green-800">Concluído</Badge>;
+      case "finalizado":
+        return <Badge variant="outline" className="bg-green-100 text-green-800">Finalizado</Badge>;
       case "cancelled":
+      case "cancelado":
         return <Badge variant="outline" className="bg-red-100 text-red-800">Cancelado</Badge>;
+      case "pagamento pendente":
+        return <Badge variant="outline" className="bg-orange-100 text-orange-800">Pagamento Pendente</Badge>;
       default:
         return <Badge variant="outline">Desconhecido</Badge>;
     }
@@ -574,10 +579,13 @@ export default function PagamentosPendentes() {
   const getPaymentStatusBadge = (status: string) => {
     switch (status) {
       case "paid":
+      case "pago":
         return <Badge className="bg-green-100 text-green-800">Pago</Badge>;
       case "pending":
+      case "pendente":
         return <Badge className="bg-yellow-100 text-yellow-800">Pendente</Badge>;
       case "cancelled":
+      case "cancelado":
         return <Badge className="bg-red-100 text-red-800">Cancelado</Badge>;
       default:
         return <Badge variant="outline">Desconhecido</Badge>;
@@ -693,7 +701,7 @@ export default function PagamentosPendentes() {
                       
                       // Apenas pagamentos pendentes (se na aba pendentes)
                       const pendingAppointments = activeTab === "pending" 
-                        ? appointments.filter((a: any) => a.payment_status === "pending")
+                        ? appointments.filter((a: any) => a.payment_status === "pendente" || a.status === "pagamento pendente")
                         : appointments;
                       
                       if (pendingAppointments.length === 0) return null;
