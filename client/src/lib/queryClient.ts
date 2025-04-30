@@ -7,15 +7,44 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+function serializeData(data: any): any {
+  if (!data) return data;
+  
+  // Convertemos Date para strings ISO no formato esperado pelo backend
+  if (data instanceof Date) {
+    return data.toISOString();
+  }
+  
+  // Se for um array, aplicamos a serialização em cada elemento
+  if (Array.isArray(data)) {
+    return data.map(item => serializeData(item));
+  }
+  
+  // Se for um objeto, percorremos suas propriedades recursivamente
+  if (typeof data === 'object' && data !== null) {
+    const serialized: any = {};
+    for (const key in data) {
+      serialized[key] = serializeData(data[key]);
+    }
+    return serialized;
+  }
+  
+  // Outros tipos são mantidos como estão
+  return data;
+}
+
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  // Serializamos os dados antes de enviar
+  const serializedData = data ? serializeData(data) : undefined;
+  
   const res = await fetch(url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    body: serializedData ? JSON.stringify(serializedData) : undefined,
     credentials: "include",
   });
 

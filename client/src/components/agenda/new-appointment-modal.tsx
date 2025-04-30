@@ -141,10 +141,12 @@ export default function NewAppointmentModal({
       
       const endTime = addMinutes(startTime, serviceDetails.totalDuration);
       
+      // Agora estamos enviando os dados de forma simples
+      // O serializeData no queryClient.ts vai converter as datas para o formato ISO
       const appointmentData = {
         client_id: data.client_id,
-        start_time: startTime.toISOString(),
-        end_time: endTime.toISOString(),
+        start_time: startTime,
+        end_time: endTime,
         service_ids: data.service_ids,
         recurrence: data.recurrence === "none" ? null : data.recurrence,
         notes: data.notes,
