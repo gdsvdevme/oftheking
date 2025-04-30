@@ -127,20 +127,10 @@ export default function Agenda() {
   const total = filteredAppointments.length;
   const totalPages = Math.ceil(total / perPage);
   
-  // Garantir que a página atual não exceda o total de páginas
-  useEffect(() => {
-    if (totalPages > 0 && currentPage > totalPages) {
-      setCurrentPage(1);
-    }
-  }, [totalPages, currentPage]);
-  
-  // Log para depuração
+  // Apenas logs para depuração
   console.log("Total appointments:", total);
   console.log("Total pages:", totalPages);
   console.log("Current page:", currentPage);
-  console.log("Active tab:", activeTab);
-  console.log("Period filter:", periodFilter);
-  console.log("Status filter:", statusFilter);
   
   const pagination = { 
     total, 
@@ -154,19 +144,7 @@ export default function Agenda() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const handlePageChange = (page: number) => {
-    console.log("Changing to page:", page, "Total pages:", totalPages);
-    // Atualizar a página atual apenas se for diferente da atual e válida
-    if (page !== currentPage && page > 0 && page <= totalPages) {
-      setCurrentPage(page);
-      
-      // Rolagem suave para o topo da lista
-      document.querySelector('.agenda-content')?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
-  };
+  // Esta função não está mais sendo usada, pois estamos usando os botões diretamente
 
   const handleAppointmentClick = (appointmentId: string) => {
     setSelectedAppointmentId(appointmentId);

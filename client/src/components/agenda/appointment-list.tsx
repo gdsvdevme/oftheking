@@ -143,12 +143,7 @@ export default function AppointmentList({
     }
   };
   
-  // Usar um efeito para notificar o componente pai quando os filtros mudarem durante a montagem
-  useEffect(() => {
-    if (onFiltersChange) {
-      onFiltersChange(searchQuery, periodFilter, statusFilter);
-    }
-  }, [onFiltersChange, searchQuery, periodFilter, statusFilter]);
+  // Não precisamos mais deste useEffect pois estamos chamando onFiltersChange diretamente no handleFilterChange
 
   // Renderizar o status do agendamento com cores correspondentes
   const renderStatus = (status: string, paymentStatus: string) => {
