@@ -41,6 +41,27 @@ export default function AppointmentDetailModal({
   const { data: appointment, isLoading } = useQuery({
     queryKey: ['/api/appointments', appointmentId],
     enabled: !!appointmentId,
+    refetchOnWindowFocus: false,
+    retry: 1,
+    
+    // Adicionar queryFn específica para obter o agendamento com detalhes
+    queryFn: async () => {
+      console.log("Buscando detalhes do agendamento:", appointmentId);
+      try {
+        const response = await fetch(`/api/appointments/${appointmentId}`);
+        const json = await response.json();
+        console.log("Resposta da API:", json);
+        
+        if (!response.ok) {
+          throw new Error('Erro ao carregar detalhes do agendamento');
+        }
+        
+        return json;
+      } catch (error) {
+        console.error("Erro ao buscar detalhes:", error);
+        throw error;
+      }
+    }
   });
 
   const handleDelete = async () => {

@@ -182,13 +182,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/appointments/:id", async (req, res) => {
     try {
+      console.log(`Buscando agendamento de ID: ${req.params.id}`);
       const appointment = await storage.getAppointmentWithServices(req.params.id);
+      
       if (!appointment) {
+        console.log(`Agendamento com ID ${req.params.id} não encontrado`);
         return res.status(404).json({ message: "Agendamento não encontrado" });
       }
+      
+      // Adicionar logs para debug
+      console.log(`Agendamento encontrado:`, JSON.stringify({
+        id: appointment.id,
+        client: appointment.client,
+        services: appointment.services?.length || 0
+      }));
+      
       res.json(appointment);
     } catch (error) {
-      res.status(500).json({ message: "Erro ao buscar agendamento" });
+      console.error("Erro ao buscar agendamento:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar agendamento",
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 
