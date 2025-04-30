@@ -6,19 +6,11 @@
   "github": {
     "silent": true
   },
-  "routes": [
-    { 
-      "src": "/api/(.*)", 
-      "dest": "/api" 
-    },
-    { 
-      "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|svg|webp|json|txt|woff|woff2|ttf|otf))",
-      "dest": "/$1"
-    },
-    { 
-      "src": "/(.*)", 
-      "dest": "/index.html" 
-    }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/(assets/.+)", "destination": "/$1" },
+    { "source": "/(.*\\.(js|css|ico|png|jpg|jpeg|svg|webp|json|txt|woff|woff2|ttf|otf))", "destination": "/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
