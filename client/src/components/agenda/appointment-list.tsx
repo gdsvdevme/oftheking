@@ -293,10 +293,7 @@ export default function AppointmentList({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onAppointmentClick(appointment.id);
-                      }}
+                      onClick={() => onAppointmentClick(appointment.id)}
                     >
                       Ver detalhes
                     </Button>
