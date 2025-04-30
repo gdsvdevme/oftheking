@@ -1,28 +1,31 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { format, addDays, startOfWeek, endOfWeek, isSameDay } from "date-fns";
-import { ptBR } from 'date-fns/locale';
-import CalendarHeader from "@/components/agenda/calendar-header";
-import AppointmentGrid from "@/components/agenda/appointment-grid";
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
 import UpcomingAppointmentsCard from "@/components/dashboard/upcoming-appointments-card";
 import FinancialSummaryCard from "@/components/dashboard/financial-summary-card";
 import InventoryStatusCard from "@/components/dashboard/inventory-status-card";
 import NewAppointmentModal from "@/components/agenda/new-appointment-modal";
 import AppointmentDetailModal from "@/components/agenda/appointment-detail-modal";
 import BlockTimeModal from "@/components/agenda/block-time-modal";
+import AppointmentList from "@/components/agenda/appointment-list";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, Plus } from "lucide-react";
+import { CalendarIcon, Plus, ListFilter } from "lucide-react";
 
 type ViewMode = "day" | "week" | "month";
 
 export default function Agenda() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [viewMode, setViewMode] = useState<ViewMode>("week");
+  const [activeTab, setActiveTab] = useState<string>("day");
   const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
   const [showBlockTimeModal, setShowBlockTimeModal] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
 
-  const { data: appointments = [] } = useQuery({
+  const { data: appointments = [] } = useQuery<any[]>({
     queryKey: ['/api/appointments'],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -32,14 +35,6 @@ export default function Agenda() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const handleDateChange = (date: Date) => {
-    setSelectedDate(date);
-  };
-
-  const handleViewModeChange = (mode: ViewMode) => {
-    setViewMode(mode);
-  };
-
   const handleAppointmentClick = (appointmentId: string) => {
     setSelectedAppointmentId(appointmentId);
   };
@@ -47,13 +42,6 @@ export default function Agenda() {
   const handleCloseAppointmentDetail = () => {
     setSelectedAppointmentId(null);
   };
-
-  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 });
-  const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 0 });
-  
-  const weekDays = Array.from({ length: 7 }).map((_, index) => 
-    addDays(weekStart, index)
-  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -82,21 +70,40 @@ export default function Agenda() {
         </div>
       </div>
 
-      <CalendarHeader 
-        selectedDate={selectedDate}
-        onDateChange={handleDateChange}
-        viewMode={viewMode}
-        onViewModeChange={handleViewModeChange}
-      />
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+        <div className="flex items-center justify-between">
+          <TabsList className="grid grid-cols-3 w-[300px]">
+            <TabsTrigger value="day">Dia</TabsTrigger>
+            <TabsTrigger value="week">Semana</TabsTrigger>
+            <TabsTrigger value="month">Mês</TabsTrigger>
+          </TabsList>
+          <div className="flex items-center text-sm text-gray-500">
+            <ListFilter className="h-4 w-4 mr-2" />
+            Filtros aplicados
+          </div>
+        </div>
 
-      <AppointmentGrid 
-        selectedDate={selectedDate}
-        viewMode={viewMode}
-        weekDays={weekDays}
-        appointments={appointments}
-        blockedTimes={blockedTimes}
-        onAppointmentClick={handleAppointmentClick}
-      />
+        <TabsContent value="day" className="mt-4">
+          <AppointmentList
+            appointments={appointments}
+            onAppointmentClick={handleAppointmentClick}
+          />
+        </TabsContent>
+        
+        <TabsContent value="week" className="mt-4">
+          <AppointmentList
+            appointments={appointments}
+            onAppointmentClick={handleAppointmentClick}
+          />
+        </TabsContent>
+        
+        <TabsContent value="month" className="mt-4">
+          <AppointmentList
+            appointments={appointments}
+            onAppointmentClick={handleAppointmentClick}
+          />
+        </TabsContent>
+      </Tabs>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
         <UpcomingAppointmentsCard />
