@@ -1,0 +1,24 @@
+Warning: validateDOMNesting(...): %s cannot appear as a descendant of <%s>.%s <a> a 
+a
+a
+Link<@https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ba200c43:352:18
+div
+_c3@https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/components/ui/card.tsx:45:9
+div
+_c@https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/components/ui/card.tsx:20:8
+UpcomingAppointmentsCard@https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/components/dashboard/upcoming-appointments-card.tsx:25:58
+div
+div
+Agenda@https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/pages/agenda.tsx?t=1745981009084:33:51
+div
+div
+ProtectedRoute@https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/components/auth/protected-route.tsx:21:31
+ProtectedLayout@https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/App.tsx?t=1745981009084&v=nPBagbdtSAfbzp46tiFEP:33:25
+Route@https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ba200c43:338:13
+Switch@https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ba200c43:394:14
+Router
+AuthProvider@https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/src/hooks/useAuth.tsx:22:29
+Provider@https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-72DEVCPZ.js?v=ba200c43:48:47
+TooltipProvider@https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=ba200c43:64:7
+QueryClientProvider@https://44ebeb6c-685a-4e72-ae13-2e52f653fe78-00-236t4vgl1pzlc.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ba200c43:2868:27
+App

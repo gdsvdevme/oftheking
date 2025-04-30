@@ -88,8 +88,29 @@ export default function AppointmentDetailModal({
     );
   }
 
-  const startTime = new Date(appointment.start_time);
-  const endTime = new Date(appointment.end_time);
+  // Tratamento seguro para datas inválidas
+  const parseDateSafely = (dateString: string) => {
+    try {
+      if (!dateString) return new Date();
+      
+      // Verifica se a data está em formato ISO
+      const date = new Date(dateString);
+      
+      // Verifica se a data é válida
+      if (isNaN(date.getTime())) {
+        console.warn("Data inválida:", dateString);
+        return new Date(); // Retorna data atual como fallback
+      }
+      
+      return date;
+    } catch (error) {
+      console.error("Erro ao processar data:", error);
+      return new Date(); // Retorna data atual como fallback
+    }
+  };
+  
+  const startTime = parseDateSafely(appointment.start_time);
+  const endTime = parseDateSafely(appointment.end_time);
 
   return (
     <>

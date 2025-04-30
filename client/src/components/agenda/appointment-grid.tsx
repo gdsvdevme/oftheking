@@ -66,10 +66,31 @@ export default function AppointmentGrid({
     );
   };
 
+  // Tratamento seguro para datas inválidas
+  const parseDateSafely = (dateString: string) => {
+    try {
+      if (!dateString) return new Date();
+      
+      // Verifica se a data está em formato ISO
+      const date = new Date(dateString);
+      
+      // Verifica se a data é válida
+      if (isNaN(date.getTime())) {
+        console.warn("Data inválida:", dateString);
+        return new Date(); // Retorna data atual como fallback
+      }
+      
+      return date;
+    } catch (error) {
+      console.error("Erro ao processar data:", error);
+      return new Date(); // Retorna data atual como fallback
+    }
+  };
+
   // Get appointments for a specific day
   const getAppointmentsForDay = (day: Date) => {
     return appointments.filter(appointment => {
-      const appointmentDate = new Date(appointment.start_time);
+      const appointmentDate = parseDateSafely(appointment.start_time);
       return isSameDay(appointmentDate, day);
     });
   };
@@ -77,27 +98,27 @@ export default function AppointmentGrid({
   // Get blocked times for a specific day
   const getBlockedTimesForDay = (day: Date) => {
     return blockedTimes.filter(block => {
-      const blockDate = new Date(block.start_time);
+      const blockDate = parseDateSafely(block.start_time);
       return isSameDay(blockDate, day);
     });
   };
 
   // Calculate position and size for appointment in grid
   const calculateAppointmentStyle = (appointment: Appointment) => {
-    const startTime = new Date(appointment.start_time);
-    const endTime = new Date(appointment.end_time);
+    const startTime = parseDateSafely(appointment.start_time);
+    const endTime = parseDateSafely(appointment.end_time);
     
     // Calculate top position (minutes since 8 AM)
     const startHour = startTime.getHours();
     const startMinutes = startTime.getMinutes();
     const minutesSince8AM = (startHour - 8) * 60 + startMinutes;
     
-    // Simplificar altura para evitar sobreposições - cada card tem 70px de altura (30-40 minutos)
-    // Independente da duração real do appointment
+    // Ajuste para horários antes das 8h ou após as 20h
+    let topPosition = (minutesSince8AM / 60) * 100;
+    if (startHour < 8) topPosition = 0;
+    if (startHour > 20) topPosition = (12 * 100) - 70; // 12 horas * 100px - altura do card
     
     // Convert to pixels (assuming 1 hour = 100px)
-    const topPosition = (minutesSince8AM / 60) * 100;
-    
     return {
       top: `${topPosition}px`,
       height: '70px', // Altura fixa para todos os cards
@@ -180,7 +201,7 @@ export default function AppointmentGrid({
                     <div className="w-full">
                       <p className="font-medium text-sm truncate">Horário Bloqueado</p>
                       <p className="text-xs text-gray-600">
-                        {format(new Date(block.start_time), 'HH:mm')}
+                        {format(parseDateSafely(block.start_time), 'HH:mm')}
                       </p>
                       {block.reason && <p className="text-xs text-gray-500 truncate">{block.reason}</p>}
                     </div>
