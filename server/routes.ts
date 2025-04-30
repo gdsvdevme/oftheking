@@ -138,27 +138,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
       const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
-      const page = req.query.page ? parseInt(req.query.page as string) : 1;
-      const perPage = req.query.perPage ? parseInt(req.query.perPage as string) : 20;
       
-      // Obtém os agendamentos paginados
-      const { appointments, total } = await storage.getAppointments(startDate, endDate, page, perPage);
+      // Obtém TODOS os agendamentos sem paginação do servidor
+      const allAppointments = await storage.getAllAppointments(startDate, endDate);
       
       // Enrich appointments with client and service data
       const enrichedAppointments = await Promise.all(
-        appointments.map(async (appointment) => {
+        allAppointments.map(async (appointment) => {
           return await storage.getAppointmentWithServices(appointment.id);
         })
       );
       
-      // Retornamos os dados com informações de paginação
+      // Retornamos todos os dados, a paginação será feita no frontend
       res.json({
         appointments: enrichedAppointments,
         pagination: {
-          total,
-          page,
-          perPage,
-          totalPages: Math.ceil(total / perPage)
+          total: enrichedAppointments.length,
+          totalPages: Math.ceil(enrichedAppointments.length / 20) // Mantemos perPage=20 como referência
         }
       });
     } catch (error) {

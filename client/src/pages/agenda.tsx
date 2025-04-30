@@ -35,23 +35,34 @@ export default function Agenda() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const perPage = 20; // 20 agendamentos por página
 
-  // Preparar parâmetros de consulta incluindo data/mês atual para garantir que todas as datas sejam consideradas
-  const queryParams = {
-    page: currentPage,
-    perPage,
-    // Não incluímos filtros de data aqui para obter todos os agendamentos
-  };
-
+  // Não precisamos de parâmetros de página agora, pois puxaremos todos os dados
   const { data, isLoading, refetch } = useQuery<{
     appointments: any[];
     pagination: PaginationInfo;
   }>({
-    queryKey: ['/api/appointments', queryParams],
+    queryKey: ['/api/appointments'],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const appointments = data?.appointments || [];
-  const pagination = data?.pagination || { total: 0, page: 1, perPage, totalPages: 1 };
+  // Todos os agendamentos vêm do servidor
+  const allAppointments = data?.appointments || [];
+  
+  // Paginação manual no lado do cliente
+  const startIndex = (currentPage - 1) * perPage;
+  const endIndex = startIndex + perPage;
+  
+  // Pegamos apenas uma página dos agendamentos para exibir
+  const appointments = allAppointments.slice(startIndex, endIndex);
+  
+  // Calculamos a paginação
+  const total = allAppointments.length;
+  const totalPages = Math.ceil(total / perPage);
+  const pagination = { 
+    total, 
+    page: currentPage, 
+    perPage, 
+    totalPages 
+  };
 
   const { data: blockedTimes = [] } = useQuery({
     queryKey: ['/api/blocked-schedules'],

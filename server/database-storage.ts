@@ -185,6 +185,45 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Appointments
+  async getAllAppointments(
+    startDate?: Date, 
+    endDate?: Date
+  ): Promise<Appointment[]> {
+    // Busca TODOS os agendamentos sem paginação
+    let query = supabase
+      .from('appointments')
+      .select('*, clients(*)')  // Incluindo dados do cliente na consulta
+      .order('start_time', { ascending: false }); // Ordenação decrescente: mais recentes primeiro
+    
+    if (startDate) {
+      query = query.gte('start_time', startDate.toISOString());
+    }
+    
+    if (endDate) {
+      query = query.lte('start_time', endDate.toISOString());
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    
+    // Reorganize data to match expected format
+    const appointments = data?.map(appointment => {
+      // Extraímos os dados do cliente e reorganizamos para o formato esperado pelo frontend
+      const { clients, ...appointmentData } = appointment;
+      
+      return {
+        ...appointmentData,
+        client: clients, // Mapeia clients para client (singular)
+        client_name: clients?.name || "", // Adiciona client_name explicitamente
+        client_phone: clients?.phone || "" // Adiciona client_phone explicitamente
+      };
+    }) || [];
+    
+    return appointments as Appointment[];
+  }
+
+  // Mantemos o método original para compatibilidade
   async getAppointments(
     startDate?: Date, 
     endDate?: Date, 
