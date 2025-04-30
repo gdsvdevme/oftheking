@@ -69,6 +69,7 @@ export default function AppointmentList({
   onAppointmentClick 
 }: AppointmentListProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  // Por padrão, não aplicamos nenhum filtro (para ver todos os agendamentos)
   const [periodFilter, setPeriodFilter] = useState<FilterPeriod>("all");
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
 
@@ -154,8 +155,7 @@ export default function AppointmentList({
     if (statusFilter !== "all") {
       if (statusFilter === "pending") {
         // Verifica se o pagamento está pendente (não pago)
-        matchesStatus = appointment.payment_status === "pending" || 
-                        appointment.payment_status !== "paid";
+        matchesStatus = appointment.payment_status === "pending";
       } else if (statusFilter === "scheduled") {
         // Verifica se está agendado (não cancelado e não concluído)
         matchesStatus = appointment.status !== "cancelled" && 
