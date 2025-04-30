@@ -44,19 +44,20 @@ export const appointments = pgTable("appointments", {
   client_id: uuid("client_id").notNull().references(() => clients.id),
   start_time: timestamp("start_time").notNull(),
   end_time: timestamp("end_time").notNull(),
-  status: text("status").notNull().default("scheduled"),
+  status: text("status").notNull().default("agendado"),
   notes: text("notes"),
   created_at: timestamp("created_at").defaultNow(),
   created_by: uuid("created_by"),
   final_price: numeric("final_price").default("0"),
   recurrence: text("recurrence"),
   payment_date: timestamp("payment_date"),
-  payment_status: text("payment_status").default("pending").notNull()
+  payment_status: text("payment_status")
 });
 
 export const insertAppointmentSchema = createInsertSchema(appointments, {
   start_time: z.coerce.date(), // Aceita string e converte para Date
-  end_time: z.coerce.date()    // Aceita string e converte para Date
+  end_time: z.coerce.date(),   // Aceita string e converte para Date
+  payment_status: z.string().nullable() // Permitir null no payment_status
 }).pick({
   client_id: true,
   start_time: true,

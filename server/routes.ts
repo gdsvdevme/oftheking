@@ -220,6 +220,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         appointmentData.end_time = new Date(appointmentData.end_time);
       }
       
+      // Para garantir que usamos os valores corretos em português
+      if (appointmentData.status === "scheduled") {
+        appointmentData.status = "agendado";
+      }
+      
+      // Certifique-se de que o payment_status é null para novos agendamentos
+      if (!appointmentData.payment_status || appointmentData.payment_status === "pending") {
+        appointmentData.payment_status = null;
+      }
+      
       // Validate main appointment data
       const validatedAppointment = insertAppointmentSchema.parse(appointmentData);
       
@@ -257,6 +267,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (typeof appointmentData.end_time === 'string') {
         appointmentData.end_time = new Date(appointmentData.end_time);
+      }
+      
+      // Converter status para valores em português
+      if (appointmentData.status === "scheduled") {
+        appointmentData.status = "agendado";
+      } else if (appointmentData.status === "cancelled" || appointmentData.status === "canceled") {
+        appointmentData.status = "cancelado";
+        // Quando cancelar, o payment_status deve ser null
+        appointmentData.payment_status = null;
+      } else if (appointmentData.status === "completed") {
+        appointmentData.status = "finalizado";
+      } else if (appointmentData.status === "pending_payment") {
+        appointmentData.status = "pagamento pendente";
+      }
+      
+      // Tratar casos de pagamento conforme especificado:
+      if (appointmentData.payment_status === "paid") {
+        appointmentData.payment_status = "pago";
+        appointmentData.status = "finalizado";
+      } else if (appointmentData.payment_status === "pending") {
+        appointmentData.payment_status = "pendente";
+        appointmentData.status = "pagamento pendente";
       }
       
       const validatedData = insertAppointmentSchema.partial().parse(appointmentData);
