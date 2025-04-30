@@ -52,6 +52,7 @@ const confirmAppointmentSchema = z.object({
   services: z.array(
     z.object({
       id: z.string(),
+      name: z.string().optional(),
       price: z.coerce.number().min(0, "O valor deve ser maior ou igual a zero"),
     })
   ),
@@ -323,14 +324,16 @@ export default function AppointmentDetailModal({
             <DialogTitle>Confirmar Atendimento</DialogTitle>
           </DialogHeader>
           
-          <ConfirmAppointmentForm 
-            appointment={appointment} 
-            onClose={() => setIsConfirmDialogOpen(false)} 
-            onSuccess={() => {
-              setIsConfirmDialogOpen(false);
-              onClose();
-            }}
-          />
+          {appointment && (
+            <ConfirmAppointmentForm 
+              appointment={appointment} 
+              onClose={() => setIsConfirmDialogOpen(false)} 
+              onSuccess={() => {
+                setIsConfirmDialogOpen(false);
+                onClose();
+              }}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </>
