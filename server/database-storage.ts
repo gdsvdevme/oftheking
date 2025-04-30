@@ -185,11 +185,38 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Appointments
-  async getAppointments(startDate?: Date, endDate?: Date): Promise<Appointment[]> {
+  async getAppointments(
+    startDate?: Date, 
+    endDate?: Date, 
+    page: number = 1, 
+    perPage: number = 20
+  ): Promise<{appointments: Appointment[], total: number}> {
+    // Cálculo de offset para paginação
+    const offset = (page - 1) * perPage;
+    
+    // Primeiro, contamos o total de registros para paginação
+    let countQuery = supabase
+      .from('appointments')
+      .select('id', { count: 'exact' });
+    
+    if (startDate) {
+      countQuery = countQuery.gte('start_time', startDate.toISOString());
+    }
+    
+    if (endDate) {
+      countQuery = countQuery.lte('start_time', endDate.toISOString());
+    }
+    
+    const { count, error: countError } = await countQuery;
+    
+    if (countError) throw countError;
+    
+    // Agora buscamos os registros para a página atual
     let query = supabase
       .from('appointments')
       .select('*, clients(*)')  // Incluindo dados do cliente na consulta
-      .order('start_time');
+      .order('start_time')
+      .range(offset, offset + perPage - 1);  // Aplicamos paginação
     
     if (startDate) {
       query = query.gte('start_time', startDate.toISOString());
@@ -216,8 +243,10 @@ export class DatabaseStorage implements IStorage {
       };
     }) || [];
     
-    // console.log("Formato ajustado:", JSON.stringify(appointments[0], null, 2));
-    return appointments as Appointment[];
+    return {
+      appointments: appointments as Appointment[],
+      total: count || 0
+    };
   }
 
   async getAppointmentWithServices(id: string): Promise<any> {

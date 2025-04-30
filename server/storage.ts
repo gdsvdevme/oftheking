@@ -36,7 +36,7 @@ export interface IStorage {
   deleteService(id: string): Promise<boolean>;
   
   // Appointments
-  getAppointments(startDate?: Date, endDate?: Date): Promise<Appointment[]>;
+  getAppointments(startDate?: Date, endDate?: Date, page?: number, perPage?: number): Promise<{ appointments: Appointment[], total: number }>;
   getAppointmentWithServices(id: string): Promise<any>;
   getUpcomingAppointments(limit?: number): Promise<any[]>;
   createAppointment(appointment: InsertAppointment, serviceIds: string[]): Promise<Appointment>;
@@ -378,22 +378,42 @@ export class MemStorage implements IStorage {
   }
 
   // Appointments Implementation
-  async getAppointments(startDate?: Date, endDate?: Date): Promise<Appointment[]> {
-    let appointments = Array.from(this.appointments.values());
+  async getAppointments(
+    startDate?: Date, 
+    endDate?: Date, 
+    page: number = 1, 
+    perPage: number = 20
+  ): Promise<{ appointments: Appointment[], total: number }> {
+    let filteredAppointments = Array.from(this.appointments.values());
     
     if (startDate) {
-      appointments = appointments.filter(appointment => 
+      filteredAppointments = filteredAppointments.filter(appointment => 
         new Date(appointment.start_time) >= startDate
       );
     }
     
     if (endDate) {
-      appointments = appointments.filter(appointment => 
+      filteredAppointments = filteredAppointments.filter(appointment => 
         new Date(appointment.start_time) <= endDate
       );
     }
     
-    return appointments;
+    // Ordenar por data de início
+    filteredAppointments.sort((a, b) => 
+      new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+    );
+    
+    // Contar o total antes de paginar
+    const total = filteredAppointments.length;
+    
+    // Aplicar paginação
+    const offset = (page - 1) * perPage;
+    const paginatedAppointments = filteredAppointments.slice(offset, offset + perPage);
+    
+    return {
+      appointments: paginatedAppointments,
+      total
+    };
   }
   
   async getAppointmentWithServices(id: string): Promise<any> {

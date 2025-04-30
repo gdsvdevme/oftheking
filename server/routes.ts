@@ -138,8 +138,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
       const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
+      const page = req.query.page ? parseInt(req.query.page as string) : 1;
+      const perPage = req.query.perPage ? parseInt(req.query.perPage as string) : 20;
       
-      const appointments = await storage.getAppointments(startDate, endDate);
+      // Obtém os agendamentos paginados
+      const { appointments, total } = await storage.getAppointments(startDate, endDate, page, perPage);
       
       // Enrich appointments with client and service data
       const enrichedAppointments = await Promise.all(
@@ -148,9 +151,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       );
       
-      res.json(enrichedAppointments);
+      // Retornamos os dados com informações de paginação
+      res.json({
+        appointments: enrichedAppointments,
+        pagination: {
+          total,
+          page,
+          perPage,
+          totalPages: Math.ceil(total / perPage)
+        }
+      });
     } catch (error) {
-      res.status(500).json({ message: "Erro ao buscar agendamentos" });
+      console.error("Erro detalhado ao buscar agendamentos:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar agendamentos",
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 
