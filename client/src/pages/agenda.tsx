@@ -20,7 +20,7 @@ import AppointmentDetailModal from "@/components/agenda/appointment-detail-modal
 import BlockTimeModal from "@/components/agenda/block-time-modal";
 import AppointmentList from "@/components/agenda/appointment-list";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, Plus, ListFilter } from "lucide-react";
+import { CalendarIcon, Plus, ListFilter, ArrowLeft, ArrowRight } from "lucide-react";
 import { Pagination } from "@/components/ui/pagination";
 
 type ViewMode = "day" | "week" | "month";
@@ -229,11 +229,30 @@ export default function Agenda() {
               onAppointmentClick={handleAppointmentClick}
               onFiltersChange={handleFiltersChange}
             />
-            <Pagination
-              currentPage={pagination.page}
-              totalPages={pagination.totalPages}
-              onPageChange={handlePageChange}
-            />
+            {/* Paginação simples como na tela de pagamentos */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-end space-x-2 py-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div className="text-sm text-muted-foreground">
+                  Página {currentPage} de {totalPages}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
         </TabsContent>
         
@@ -244,11 +263,30 @@ export default function Agenda() {
               onAppointmentClick={handleAppointmentClick}
               onFiltersChange={handleFiltersChange}
             />
-            <Pagination
-              currentPage={pagination.page}
-              totalPages={pagination.totalPages}
-              onPageChange={handlePageChange}
-            />
+            {/* Paginação simples como na tela de pagamentos */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-end space-x-2 py-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div className="text-sm text-muted-foreground">
+                  Página {currentPage} de {totalPages}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
         </TabsContent>
         
@@ -259,11 +297,30 @@ export default function Agenda() {
               onAppointmentClick={handleAppointmentClick}
               onFiltersChange={handleFiltersChange}
             />
-            <Pagination
-              currentPage={pagination.page}
-              totalPages={pagination.totalPages}
-              onPageChange={handlePageChange}
-            />
+            {/* Paginação simples como na tela de pagamentos */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-end space-x-2 py-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div className="text-sm text-muted-foreground">
+                  Página {currentPage} de {totalPages}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
         </TabsContent>
       </Tabs>
