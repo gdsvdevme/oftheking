@@ -69,8 +69,8 @@ export default function AppointmentList({
   onFiltersChange 
 }: AppointmentListProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  // Por padrão, não aplicamos nenhum filtro (para ver todos os agendamentos)
-  const [periodFilter, setPeriodFilter] = useState<FilterPeriod>("all");
+  // Por padrão, filtramos por "Este mês"
+  const [periodFilter, setPeriodFilter] = useState<FilterPeriod>("thisMonth");
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
 
   // Função para tratamento seguro de datas

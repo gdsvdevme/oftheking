@@ -44,7 +44,7 @@ export default function Agenda() {
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [periodFilter, setPeriodFilter] = useState<FilterPeriod>("all");
+  const [periodFilter, setPeriodFilter] = useState<FilterPeriod>("thisMonth");
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
   const perPage = 20; // 20 agendamentos por página
 
