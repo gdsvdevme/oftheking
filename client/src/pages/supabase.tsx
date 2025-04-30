@@ -323,6 +323,38 @@ export default function SupabasePage() {
                     </p>
                   </div>
                 )}
+                
+                {syncQuery.data.results?.clients && (
+                  <div className="mt-2 p-2 bg-white/50 rounded border border-green-200">
+                    <p className="font-medium">
+                      Clientes: {syncQuery.data.results.clients.success ? (
+                        <span className="text-green-600">
+                          {syncQuery.data.results.clients.count} encontrados
+                        </span>
+                      ) : (
+                        <span className="text-red-600">
+                          Falha: {syncQuery.data.results.clients.message}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                )}
+                
+                {syncQuery.data.results?.appointments && (
+                  <div className="mt-2 p-2 bg-white/50 rounded border border-green-200">
+                    <p className="font-medium">
+                      Agendamentos: {syncQuery.data.results.appointments.success ? (
+                        <span className="text-green-600">
+                          {syncQuery.data.results.appointments.count} encontrados
+                        </span>
+                      ) : (
+                        <span className="text-red-600">
+                          Falha: {syncQuery.data.results.appointments.message}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
             
@@ -459,6 +491,140 @@ export default function SupabasePage() {
                           </TableCell>
                           <TableCell>{user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : "Nunca"}</TableCell>
                           <TableCell>{new Date(user.created_at).toLocaleString()}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="clients">
+          <Card>
+            <CardHeader>
+              <CardTitle>Clientes do Supabase</CardTitle>
+              <CardDescription>
+                Clientes armazenados na tabela "clientes" do Supabase.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {clientsQuery.isPending ? (
+                <div className="flex justify-center items-center h-40">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : clientsQuery.isError ? (
+                <div className="p-3 bg-red-50 text-red-700 rounded-md">
+                  Erro ao carregar clientes: {clientsQuery.error.message}
+                </div>
+              ) : !clientsQuery.data?.clients || clientsQuery.data.clients.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  <p>Nenhum cliente encontrado no Supabase.</p>
+                  <p className="mt-2 text-sm">
+                    Verifique se você já criou a tabela "clientes" ou se o Supabase está corretamente configurado.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="bg-blue-50 p-3 rounded-md text-blue-800 mb-4">
+                    <p className="font-medium">Total: {clientsQuery.data.count} clientes encontrados</p>
+                  </div>
+                  
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Telefone</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Criado em</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {clientsQuery.data.clients.map((client: any) => (
+                        <TableRow key={client.id}>
+                          <TableCell className="font-mono text-xs">{client.id}</TableCell>
+                          <TableCell>{client.name || "-"}</TableCell>
+                          <TableCell>{client.phone || "-"}</TableCell>
+                          <TableCell>{client.email || "-"}</TableCell>
+                          <TableCell>{client.created_at ? new Date(client.created_at).toLocaleString() : "-"}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="appointments">
+          <Card>
+            <CardHeader>
+              <CardTitle>Agendamentos do Supabase</CardTitle>
+              <CardDescription>
+                Agendamentos armazenados na tabela "agendamentos" do Supabase.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {appointmentsQuery.isPending ? (
+                <div className="flex justify-center items-center h-40">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : appointmentsQuery.isError ? (
+                <div className="p-3 bg-red-50 text-red-700 rounded-md">
+                  Erro ao carregar agendamentos: {appointmentsQuery.error.message}
+                </div>
+              ) : !appointmentsQuery.data?.appointments || appointmentsQuery.data.appointments.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  <p>Nenhum agendamento encontrado no Supabase.</p>
+                  <p className="mt-2 text-sm">
+                    Verifique se você já criou a tabela "agendamentos" ou se o Supabase está corretamente configurado.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="bg-blue-50 p-3 rounded-md text-blue-800 mb-4">
+                    <p className="font-medium">Total: {appointmentsQuery.data.count} agendamentos encontrados</p>
+                  </div>
+                  
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Cliente</TableHead>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Horário</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {appointmentsQuery.data.appointments.map((appointment: any) => (
+                        <TableRow key={appointment.id}>
+                          <TableCell className="font-mono text-xs">{appointment.id}</TableCell>
+                          <TableCell>{appointment.client_name || appointment.client_id || "-"}</TableCell>
+                          <TableCell>
+                            {appointment.start_time ? new Date(appointment.start_time).toLocaleDateString() : "-"}
+                          </TableCell>
+                          <TableCell>
+                            {appointment.start_time ? new Date(appointment.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "-"}
+                          </TableCell>
+                          <TableCell>
+                            {appointment.status === 'completed' ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Concluído
+                              </span>
+                            ) : appointment.status === 'cancelled' ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Cancelado
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                Agendado
+                              </span>
+                            )}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
